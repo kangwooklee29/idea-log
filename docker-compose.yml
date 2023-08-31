@@ -1,0 +1,18 @@
+services:
+  web:
+    build: 
+      context: .
+      dockerfile: Dockerfile.web
+    command: gunicorn flask_server.app:app --bind 0.0.0.0:8000 # Launches the 'app' from the flask_server.app module with Gunicorn, accessible on all interfaces at port 8000.
+    depends_on:
+      - nginx
+    ports:
+      - "8000:8000"
+
+  nginx:
+    image: nginx:latest
+    command: nginx -g "daemon off;" # Ensures NGINX runs in the foreground, keeping the container alive and responsive, by setting global directives.
+    volumes:
+      - ./configs/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "80:80"

@@ -1,0 +1,20 @@
+FROM python:3.9-slim-buster
+
+# Set the working directory
+WORKDIR /app
+
+# Copy only the requirements-base.txt, base requirements that don't change often first for efficient layer caching
+COPY ./flask_server/requirements-base.txt /app/flask_server/requirements-base.txt
+
+# Minimize layers by combining commands. 
+# Start with less frequently changed commands (e.g., apt-get) before pip install.
+RUN apt-get update && \
+    apt-get install -y sqlite3 && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install --no-cache-dir -r /app/flask_server/requirements-base.txt
+
+# Add all flask server & web client files. This is at the end since these files may change often, 
+# and we want to take advantage of layer caching for the commands above.
+ADD ./flask_server /app/flask_server
+
+ADD ./web_client /app/web_client
