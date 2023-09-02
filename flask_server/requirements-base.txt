@@ -1,5 +1,6 @@
 Authlib
 flask
+Flask-SQLAlchemy
 gunicorn
 python-decouple
 requests
