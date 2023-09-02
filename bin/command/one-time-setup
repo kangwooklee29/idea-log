@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Get the path of the current directory
+SCRIPT_PATH="$(cd "$(dirname "$0")"; pwd -P)"
+
+# Check if the path is already in the bashrc
+if grep -q "${SCRIPT_PATH}" ~/.bashrc; then
+    exit 0
+fi
+
+# Add the directory bearalgorithm/command to ~/.bashrc. It enables to use the customized commands globally.
+echo "export PATH=\"\$PATH:${SCRIPT_PATH}\"" >> ~/.bashrc
+
+# Apply the change
+source ~/.bashrc
