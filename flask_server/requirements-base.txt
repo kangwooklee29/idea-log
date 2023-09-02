@@ -1,4 +1,5 @@
 Authlib
 flask
 gunicorn
+python-decouple
 requests
