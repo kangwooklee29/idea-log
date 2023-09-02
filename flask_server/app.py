@@ -2,6 +2,7 @@ from authlib.integrations.flask_client import OAuth
 from decouple import config
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
+from flask_server import models
 from .routes import blueprint
 
 STATIC_FOLDER = "../web_client"
@@ -23,6 +24,15 @@ def create_app():
         client_kwargs={'scope': 'profile email'},
     )
     app.register_blueprint(blueprint, url_prefix='')
+
+    # Initialize db
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + config('SQLALCHEMY_DATABASE_URI')
+    app.db = models.db
+    app.db.init_app(app)
+
+    # Create tables if they do not exist already
+    with app.app_context():
+        app.db.create_all()
 
     return app
 
