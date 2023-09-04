@@ -42,7 +42,14 @@ def write_message():
     category_id = request.args.get('category_id', default='')
     msg_id = request.args.get('msg_id', default='')
 
-    return models.write_message(message, written_date, category_id, msg_id)
+    return models.write_message(message, written_date, category_id, msg_id, session.get('profile')['id'])
+
+@blueprint_api.route('/update_category')
+def update_category():
+    name = request.args.get('name', default='')
+    category_id = request.args.get('id', default='')
+
+    return models.update_category(name, category_id, session.get('profile')['id'])
 
 @blueprint_auth.route('/login')
 def login():
