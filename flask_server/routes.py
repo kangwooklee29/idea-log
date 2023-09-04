@@ -1,5 +1,6 @@
 from flask import Blueprint, current_app, jsonify, redirect, request, send_from_directory, session, url_for
 from flask_server import models
+from urllib.parse import unquote
 import requests
 
 blueprint = Blueprint('main', __name__)
@@ -37,19 +38,23 @@ def fetch_categories():
 
 @blueprint_api.route('/write_message')
 def write_message():
-    message = request.args.get('message', default='')
+    message = unquote(request.args.get('message', default=''))
     written_date = request.args.get('written_date', default='')
     category_id = request.args.get('category_id', default='')
     msg_id = request.args.get('msg_id', default='')
 
-    return models.write_message(message, written_date, category_id, msg_id, session.get('profile')['id'])
+    if models.write_message(message, written_date, category_id, msg_id, session.get('profile')['id']):
+        return jsonify(success=True)
+    return jsonify(success=False)
 
 @blueprint_api.route('/update_category')
 def update_category():
-    name = request.args.get('name', default='')
+    name = unquote(request.args.get('name', default=''))
     category_id = request.args.get('id', default='')
 
-    return models.update_category(name, category_id, session.get('profile')['id'])
+    if models.update_category(name, category_id, session.get('profile')['id']):
+        return jsonify(success=True)
+    return jsonify(success=False)
 
 @blueprint_api.route('/fetch_messages')
 def fetch_messages():

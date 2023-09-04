@@ -99,7 +99,7 @@ def write_message(message, written_date, category_id, msg_id, user_id):
     except Exception as e:
         db.session.rollback()
         print(f"Error occurred: {e}")
-        return f"Operation failed: {e}", 500
+        return False
 
 def update_category(name, category_id, user_id):
     try:
@@ -114,6 +114,7 @@ def update_category(name, category_id, user_id):
         return True
     except Exception as e:
         db.session.rollback()
+        print(f"Error occurred: {e}")
         return False
 
 def fetch_messages(target, limit, parent_msg_id, target_date, category_id, user_id):
