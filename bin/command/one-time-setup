@@ -13,3 +13,5 @@ echo "export PATH=\"\$PATH:${SCRIPT_PATH}\"" >> ~/.bashrc
 
 # Apply the change
 source ~/.bashrc
+
+echo "Please run flask-server-setup to setup the flask server."
