@@ -84,7 +84,11 @@ class Title{
             throw new Error("Request failed. Try again.");
         }).then(response=>{
             this.categories = response;
-            console.log(this.categories);
+            const allCategory = this.categories.find(category => category.name === "All");
+            if (allCategory) {
+                content_category_id = allCategory.id;
+                document.querySelector("iframe").src = "/components/content.html";
+            }
         }).catch(error=>{
             alert(error);
         });
@@ -284,9 +288,8 @@ class Textarea {
     }
 }
 
-let content_category_id = 1; // will be used in content.js, called as `window.parent.content_category_id`.
+let content_category_id; // will be used in content.js, called as `window.parent.content_category_id`.
 window.onload = async ()=>{
-    document.querySelector("iframe").src = "/components/content.html";
     new Title(document.querySelector("main > div.title"));
     new Textarea(document.querySelector("main > div.textarea"));
 }
