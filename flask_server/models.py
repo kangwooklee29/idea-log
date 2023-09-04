@@ -59,3 +59,43 @@ def check_if_joined(user_id):
 
 def fetch_categories(user_id):
     return Category.query.filter_by(user_id=user_id).all()
+
+def write_message(message, written_date, category_id, msg_id):
+    try:
+        if not msg_id:
+            new_message = Message(
+                category_id=category_id,
+                user_id=user_id,
+                parent_msg_id=-1,
+                written_date=written_date,
+                message=message
+            )
+            db.session.add(new_message)
+
+        else:
+            target_to_modify = Message.query.filter_by(msg_id=msg_id).first()
+            if target_to_modify.category_id == category_id:
+                target_to_modify.user_id = user_id
+                target_to_modify.parent_msg_id = parent_msg_id
+                target_to_modify.written_date = written_date
+                target_to_modify.message = message
+            else:
+                queue = [msg_id]
+                target_to_modify.parent_msg_id = -1
+                s, e = 0, 0
+                while s <= e:
+                    current_message = Message.query.filter_by(msg_id=queue[s]).first()
+                    current_message.category_id = category_id
+                    replies = Message.query.filter_by(parent_msg_id=queue[s]).all()
+                    e += len(replies)
+                    for reply in replies:
+                        queue.append(reply.msg_id)
+                    s += 1
+
+        db.session.commit()
+        return True
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error occurred: {e}")
+        return f"Operation failed: {e}", 500

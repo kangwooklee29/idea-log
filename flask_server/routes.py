@@ -35,6 +35,15 @@ def handle_api_profile():
 def fetch_categories():
     return jsonify([cat.to_dict() for cat in models.fetch_categories(session.get('profile')['id'])])    
 
+@blueprint_api.route('/write_message')
+def write_message():
+    message = request.args.get('message', default='')
+    written_date = request.args.get('written_date', default='')
+    category_id = request.args.get('category_id', default='')
+    msg_id = request.args.get('msg_id', default='')
+
+    return models.write_message(message, written_date, category_id, msg_id)
+
 @blueprint_auth.route('/login')
 def login():
     if 'profile' in session:

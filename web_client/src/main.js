@@ -89,6 +89,10 @@ class Title{
                 content_category_id = allCategory.id;
                 document.querySelector("iframe").src = "/components/content.html";
             }
+            const noneCategory = this.categories.find(category => category.name === "None");
+            if (noneCategory) {
+                user_none_category_id = noneCategory.id;
+            }
         }).catch(error=>{
             alert(error);
         });
@@ -273,7 +277,7 @@ class Textarea {
         this.textarea_obj.value = "";
         this.reset_textarea_height();
 
-        api.get({mode:"write_message", message:encodeURIComponent(temp), written_date:Date.now()})
+        api.get({mode:"write_message", message:encodeURIComponent(temp), written_date:Date.now(), category_id: user_none_category_id})
         .then(response => {
             if (response.ok)
             {
@@ -288,7 +292,7 @@ class Textarea {
     }
 }
 
-let content_category_id; // will be used in content.js, called as `window.parent.content_category_id`.
+let content_category_id, user_none_category_id; // will be used in content.js, called as `window.parent.content_category_id`.
 window.onload = async ()=>{
     new Title(document.querySelector("main > div.title"));
     new Textarea(document.querySelector("main > div.textarea"));
