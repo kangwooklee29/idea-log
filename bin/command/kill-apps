@@ -1,0 +1,13 @@
+#!/bin/bash
+
+SCRIPT_NAME=$(basename "$0")
+
+if [ "$#" -eq 0 ]; then
+    echo "Error: A port number is required."
+    echo "Usage: $SCRIPT_NAME [port1] [port2] ..."
+    exit 1
+fi
+
+for port in "$@"; do
+    lsof -ti:"$port" | xargs -r kill -9
+done
