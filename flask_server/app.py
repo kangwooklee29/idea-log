@@ -3,7 +3,7 @@ from decouple import config
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_server import models
-from .routes import blueprint
+from .routes import blueprint, blueprint_auth, blueprint_api
 
 STATIC_FOLDER = "../web_client"
 
@@ -24,6 +24,8 @@ def create_app():
         client_kwargs={'scope': 'profile email'},
     )
     app.register_blueprint(blueprint, url_prefix='')
+    app.register_blueprint(blueprint_auth, url_prefix='/auth')
+    app.register_blueprint(blueprint_api, url_prefix='/api')
 
     # Initialize db
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + config('SQLALCHEMY_DATABASE_URI')

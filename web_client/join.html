@@ -14,7 +14,7 @@
     <script>
         async function requestJoinAction(action) {
             try {
-                const response = await fetch(`/join?action=${action}`);
+                const response = await fetch(`/auth/join?action=${action}`);
                 const data = await response.json();
 
                 alert(data.message);

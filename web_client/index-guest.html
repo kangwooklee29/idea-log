@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Idea Log</title>
+    <!-- This file should be removed and integrated to index.html -->
 </head>
     <body>
-        <a href="/login">You need to log in first.</a>
+        <a href="/auth/login">You need to log in first.</a>
         <br><br>
         Or, you can login with ID guest & PW guest.
         <br><br>
-        <form action="/login/callback?guest=true" method="post">
+        <form action="/auth/login/callback?guest=true" method="post">
             <label for="id">ID:</label>
             <input type="text" id="id" name="id" placeholder="Enter ID" value="guest" readonly>
             <br><br>

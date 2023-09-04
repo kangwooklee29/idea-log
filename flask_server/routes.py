@@ -3,6 +3,10 @@ from flask_server import models
 import requests
 
 blueprint = Blueprint('main', __name__)
+blueprint_auth = Blueprint('auth', __name__)
+blueprint_api = Blueprint('api', __name__)
+
+ALLOWED_PROPERTIES_API_PROFILE = {'name'}
 
 @blueprint.route('/')
 def index():
@@ -10,19 +14,30 @@ def index():
         return send_from_directory(current_app.static_folder, 'index-authenticated.html')
     return send_from_directory(current_app.static_folder, 'index-guest.html')
 
-@blueprint.route('/get_username')
-def get_username():
-    if 'profile' in session:
-        return jsonify({"name": session.get('profile')['name']})
-    return jsonify({"name": None})
+@blueprint.route('/<path:filename>')
+def serve_static(filename):
+    return send_from_directory(app.static_folder, filename)
 
-@blueprint.route('/login')
+@blueprint_api.route('/profile')
+def handle_api_profile():
+    prop = request.args.get('property', default='')
+
+    if not prop in ALLOWED_PROPERTIES_API_PROFILE:
+        return jsonify(error=f"'{prop}' is not a valid property."), 400
+
+    value = ''
+    if 'profile' in session:
+        value = session.get('profile').get(prop, '')
+
+    return jsonify(value=value)
+
+@blueprint_auth.route('/login')
 def login():
     if 'profile' in session:
         return redirect(url_for('main.index'))
-    return current_app.google_oauth.authorize_redirect(url_for('main.authorized', _external=True), prompt='consent')
+    return current_app.google_oauth.authorize_redirect(url_for('auth.authorized', _external=True), prompt='consent')
 
-@blueprint.route('/login/callback', methods=['GET', 'POST'])
+@blueprint_auth.route('/login/callback', methods=['GET', 'POST'])
 def authorized():
     is_guest = request.args.get('guest', default=False, type=bool)
 
@@ -35,9 +50,9 @@ def authorized():
 
     if models.check_if_joined(session.get('profile')['id']):
         return redirect(url_for('main.index'))
-    return redirect(url_for('main.user_join'))
+    return redirect(url_for('auth.user_join'))
 
-@blueprint.route('/join')
+@blueprint_auth.route('/join')
 def user_join():
     action = request.args.get('action')
     if action:
@@ -56,13 +71,13 @@ def handle_join_action(action=None):
         if models.create_categories_for_user(session.get('profile')['id']):
             return jsonify({'message': 'Successfully joined!', 'redirect_url': url_for('main.index')})
         else:
-            return jsonify({'message': 'Failed to join.', 'redirect_url': url_for('main.logout')})
+            return jsonify({'message': 'Failed to join.', 'redirect_url': url_for('auth.logout')})
     elif action == 'disagree':
-        return jsonify({'message': 'You must join to use the service.', 'redirect_url': url_for('main.logout')})
+        return jsonify({'message': 'You must join to use the service.', 'redirect_url': url_for('auth.logout')})
 
-    return jsonify({'message': '', 'redirect_url': url_for('main.user_join')})
+    return jsonify({'message': '', 'redirect_url': url_for('auth.user_join')})
 
-@blueprint.route('/logout')
+@blueprint_auth.route('/logout')
 def logout():
     access_token = session.get('access_token')
     if access_token:
