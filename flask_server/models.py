@@ -10,6 +10,13 @@ class Category(db.Model):
     name = db.Column(db.String)
     user_id = db.Column(db.String)
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'name': self.name
+        }
+
 class Message(db.Model):
     msg_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     category_id = db.Column(db.Integer)
@@ -17,6 +24,16 @@ class Message(db.Model):
     message = db.Column(db.String)
     user_id = db.Column(db.String)
     parent_msg_id = db.Column(db.Integer)
+
+    def to_dict(self):
+        return {
+            'msg_id': self.msg_id,
+            'parent_msg_id': self.parent_msg_id,
+            'written_date': self.written_date,
+            'message': self.message,
+            'category_id': self.category_id,
+            'user_id': self.user_id
+        }
 
 def create_categories_for_user(user_id):
     try:
@@ -39,3 +56,6 @@ def check_if_joined(user_id):
     except SQLAlchemyError:
         db.session.rollback()
         return False
+
+def fetch_categories(user_id):
+    return Category.query.filter_by(user_id=user_id).all()
