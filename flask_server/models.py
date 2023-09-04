@@ -60,7 +60,7 @@ def check_if_joined(user_id):
 def fetch_categories(user_id):
     return Category.query.filter_by(user_id=user_id).all()
 
-def write_message(message, written_date, category_id, msg_id):
+def write_message(message, written_date, category_id, msg_id, user_id):
     try:
         if not msg_id:
             new_message = Message(
@@ -99,3 +99,18 @@ def write_message(message, written_date, category_id, msg_id):
         db.session.rollback()
         print(f"Error occurred: {e}")
         return f"Operation failed: {e}", 500
+
+def update_category(name, category_id, user_id):
+    try:
+        if not category_id:
+            new_category = Category(name=name, user_id=user_id)
+            db.session.add(new_category)
+        else:
+            category = Category.query.get(category_id)
+            if not category: return False
+            category.name = name
+        db.session.commit()
+        return True
+    except Exception as e:
+        db.session.rollback()
+        return False

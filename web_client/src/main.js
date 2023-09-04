@@ -106,7 +106,7 @@ class Title{
 
     add_category()
     {
-        api.get({mode:"category_modify", name:encodeURIComponent(this.input_obj.value)})
+        api.get({mode:"update_category", name:encodeURIComponent(this.input_obj.value)})
         .then(response => {
             if (response.ok) return response.json();
             throw new Error("Request failed. Try again.");
