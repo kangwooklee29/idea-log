@@ -1,0 +1,116 @@
+
+body, main, div, button{
+    display: flex;
+}
+
+body{
+    margin: 0px;
+    width: 100vw;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+body::-webkit-scrollbar {
+    display: none;
+}
+
+div.content_inner{
+    flex-direction: column;
+    width: 100%;
+    overflow: auto;
+}
+
+div.content_inner::-webkit-scrollbar {
+    display: none;
+}
+
+div.message_outer{
+    margin: 10px 0px 40px 10px;
+    padding: 5px;
+}
+
+div.message_inner{
+    position: relative;
+    border: 5px solid white;
+    border-radius: 20px;
+    color: #222;
+    background-color: white;
+    width: calc(100% - 60px);
+    padding:15px;
+    word-break: break-all;
+    flex-direction: column;
+}
+
+pre{
+    white-space: pre-wrap;
+    margin: 0px;
+    line-height: 1.4;
+    font-family: auto;
+}
+
+a{
+    color: #222;
+    text-decoration: none;
+}
+
+a:hover{
+    text-decoration: underline;
+}
+
+div.msg_controller{
+    padding-left:15px;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    min-height: 100px;
+    user-select: none;
+}
+
+div.msg_controller span{
+    font-size: 9pt;
+    color: #aaa;
+    margin-top: 5px;
+    position: absolute;
+    bottom: 2px;
+}
+
+button{
+    justify-content: center;
+    border: 0px;
+    background-color: #fafafa;
+    border-radius: 10px;
+    align-items: center;
+    user-select: none;
+}
+
+button.up, button.down{
+    width: 30px;
+    margin-top: 5px;
+    height: 30px;
+    border-radius: 10px;
+    color: #bbb;
+}
+
+div.date_str{
+    user-select: none;
+    position: absolute;
+    font-size:10pt;
+    color:#888;
+    top:-20px;
+    left: 25px;
+}
+
+button.reply{
+    position: absolute;
+    bottom:-35px;
+    color:#ccc;
+    background-color: #eee;
+}
+
+button.delete{
+    position: absolute;
+    top:-20px;
+    right:0px;
+    color:#ccc;
+    background-color: #eee;
+}
