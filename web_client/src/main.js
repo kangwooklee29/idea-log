@@ -86,7 +86,7 @@ class Title{
             this.categories = response;
             const allCategory = this.categories.find(category => category.name === "All");
             if (allCategory) {
-                content_category_id = allCategory.id;
+                localStorage.setItem('content_category_id', allCategory.id);
                 document.querySelector("iframe").src = "/components/content.html";
             }
             const noneCategory = this.categories.find(category => category.name === "None");
@@ -120,7 +120,7 @@ class Title{
 
     move_category(category_id)
     {
-        content_category_id = category_id;
+        localStorage.setItem('content_category_id', category_id);
         document.querySelector("iframe").src = "/components/content.html"; 
     }
 
@@ -292,7 +292,7 @@ class Textarea {
     }
 }
 
-let content_category_id, user_none_category_id; // will be used in content.js, called as `window.parent.content_category_id`.
+let user_none_category_id;
 window.onload = async ()=>{
     new Title(document.querySelector("main > div.title"));
     new Textarea(document.querySelector("main > div.textarea"));

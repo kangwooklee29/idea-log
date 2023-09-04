@@ -328,5 +328,5 @@ msg_id !== null 인 케이스에 관한 구현.
     }
 }
 
-api.category_id = window.parent.content_category_id;
+api.category_id = localStorage.getItem('content_category_id');
 new Content(document.querySelector("main"));
