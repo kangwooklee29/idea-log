@@ -1,3 +1,4 @@
+from flask import jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -114,3 +115,26 @@ def update_category(name, category_id, user_id):
     except Exception as e:
         db.session.rollback()
         return False
+
+def fetch_messages(target, limit, parent_msg_id, target_date, category_id, user_id):
+    # Get all messages for a particular parent
+    if limit == "-1":
+        messages = Message.query.filter_by(parent_msg_id=parent_msg_id).all()
+    # Infinite scroll: get a limited number of messages based on date and category
+    elif limit == "20":
+        query = Message.query.filter_by(parent_msg_id=-1, user_id=user_id)
+        
+        if target_date:
+            query = query.filter(Message.written_date < target_date)
+            
+        if category_id == "1":
+            query = query.filter(Message.category_id != 3)
+        else:
+            query = query.filter_by(category_id=category_id)
+            
+        messages = query.order_by(Message.written_date.desc()).limit(20).all()
+    # Get the latest updated message
+    else:
+        messages = Message.query.filter_by(user_id=user_id).order_by(Message.msg_id.desc()).limit(1).all()
+
+    return jsonify([msg.to_dict() for msg in messages])

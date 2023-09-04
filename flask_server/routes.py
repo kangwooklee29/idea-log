@@ -51,6 +51,16 @@ def update_category():
 
     return models.update_category(name, category_id, session.get('profile')['id'])
 
+@blueprint_api.route('/fetch_messages')
+def fetch_messages():
+    target = request.args.get('target')
+    limit = request.args.get('limit')
+    parent_msg_id = request.args.get('parent_msg_id')
+    target_date = request.args.get('target_date')
+    category_id = request.args.get('category_id')
+
+    return models.fetch_messages(target, limit, parent_msg_id, target_date, category_id,  session.get('profile')['id'])
+
 @blueprint_auth.route('/login')
 def login():
     if 'profile' in session:

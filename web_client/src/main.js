@@ -296,4 +296,11 @@ let content_category_id, user_none_category_id; // will be used in content.js, c
 window.onload = async ()=>{
     new Title(document.querySelector("main > div.title"));
     new Textarea(document.querySelector("main > div.textarea"));
+    fetch('/api/profile?property=name')
+    .then(response => response.json())
+    .then(data => {
+        if (data.value) {
+            document.getElementById('username').innerText = `Hello, ${data.value}!`;
+        }
+    });
 }

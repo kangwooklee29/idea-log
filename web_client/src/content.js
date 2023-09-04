@@ -89,7 +89,7 @@ class Content {
     {
         if (parent_msg_id !== -1) limit = -1;
 
-        var response = await api.get({mode:"get", category_id:this.category_id, target_date:target_date, parent_msg_id:parent_msg_id, limit:limit, msg_id:msg_id});
+        var response = await api.get({mode:"fetch_messages", category_id:this.category_id, target_date:target_date, parent_msg_id:parent_msg_id, limit:limit, msg_id:msg_id});
         var res_json = null;
 
         if (response.ok) 
