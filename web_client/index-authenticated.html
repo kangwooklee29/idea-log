@@ -1,9 +1,20 @@
 <html>
     <head>
-        <title>Hello World!</title>
+        <title>Idea Log</title>
+        <script>
+            window.onload = function() {
+                fetch('/get_username')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.name) {
+                        document.getElementById('username').innerText = `Hello, ${data.name}!`;
+                    }
+                });
+            };
+        </script>
     </head>
     <body>
-        Hello World!
+        <p id="username">Loading...</p>
         <a href="/logout">logout</a>
     </body>
 </html>

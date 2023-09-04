@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Service</title>
+</head>
+<body>
+    <h2>Welcome to Our Service</h2>
+    <p>Do you agree to join the service?</p>
+    <button onclick="requestJoinAction('agree')">Agree</button>
+    <button onclick="requestJoinAction('disagree')">Disagree</button>
+
+    <script>
+        async function requestJoinAction(action) {
+            try {
+                const response = await fetch(`/join?action=${action}`);
+                const data = await response.json();
+
+                alert(data.message);
+
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                }
+            } catch (error) {
+                console.error('There was an error:', error);
+                alert('There was an error processing your request.');
+            }
+        }
+    </script>
+</body>
+</html>
