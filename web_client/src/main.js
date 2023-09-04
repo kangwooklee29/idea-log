@@ -78,12 +78,13 @@ class Title{
 
     get_categories()
     {
-        api.get({mode:"get", target:"category"})
+        api.get({mode:"fetch_categories"})
         .then(response => {
             if (response.ok) return response.json();
             throw new Error("Request failed. Try again.");
         }).then(response=>{
             this.categories = response;
+            console.log(this.categories);
         }).catch(error=>{
             alert(error);
         });
@@ -283,8 +284,8 @@ class Textarea {
     }
 }
 
+let content_category_id = 1; // will be used in content.js, called as `window.parent.content_category_id`.
 window.onload = async ()=>{
-    content_category_id = 1;
     document.querySelector("iframe").src = "/components/content.html";
     new Title(document.querySelector("main > div.title"));
     new Textarea(document.querySelector("main > div.textarea"));

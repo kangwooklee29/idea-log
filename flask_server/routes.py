@@ -31,6 +31,10 @@ def handle_api_profile():
 
     return jsonify(value=value)
 
+@blueprint_api.route('/fetch_categories')
+def fetch_categories():
+    return jsonify([cat.to_dict() for cat in models.fetch_categories(session.get('profile')['id'])])    
+
 @blueprint_auth.route('/login')
 def login():
     if 'profile' in session:
