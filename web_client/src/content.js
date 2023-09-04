@@ -328,17 +328,5 @@ msg_id !== null 인 케이스에 관한 구현.
     }
 }
 
-function reload() // 메시지 새로 쓸 때 새로고침 하는 함수. 댓글 단 다음에도 새로고침. 카테고리 수정 후에도 새로고침. 아 갈 길이 멀구나... 
-{
-    window.location.href = "./content.html?category_id=" + api.category_id + "&auth_key=" + api.auth_key;    
-}
-
-
-api.get_auth(window.location.search).then(()=>{
-    api.parse(window.location.search);
-    console.log(api.category_id);
-    new Content(document.querySelector("main"));
-}).catch(error =>{
-    document.body.innerHTML="";
-    setTimeout(()=>alert(error), 100);
-});
+api.category_id = window.parent.content_category_id;
+new Content(document.querySelector("main"));

@@ -111,7 +111,8 @@ class Title{
 
     move_category(category_id)
     {
-       document.querySelector("iframe").src = "./content.html?category_id=" + category_id + "&auth_key=" + api.auth_key; 
+        content_category_id = category_id;
+        document.querySelector("iframe").src = "/components/content.html"; 
     }
 
     categories_stretch()
@@ -271,10 +272,7 @@ class Textarea {
         .then(response => {
             if (response.ok)
             {
-                const url = new URL(document.querySelector("iframe").src);
-                const params_iframe = new URLSearchParams(url.search);
-                const category_id = params_iframe.get("category_id");
-                document.querySelector("iframe").src = "./content.html?category_id=" + category_id + "&auth_key=" + api.auth_key;    
+                document.querySelector("iframe").src = "/components/content.html";
                 return;
             }
             throw new Error("Request failed. Try again.");
@@ -285,14 +283,9 @@ class Textarea {
     }
 }
 
-
 window.onload = async ()=>{
-    await api.get_auth(window.location.search).then(()=>{
-        document.querySelector("iframe").src = "./content.html?auth_key=" + api.auth_key + "&category_id=1";
-        new Title(document.querySelector("main > div.title"));
-        new Textarea(document.querySelector("main > div.textarea"));
-    }).catch(error =>{
-        document.body.innerHTML="";
-        setTimeout(()=>alert(error), 100);
-    });
+    content_category_id = 1;
+    document.querySelector("iframe").src = "/components/content.html";
+    new Title(document.querySelector("main > div.title"));
+    new Textarea(document.querySelector("main > div.textarea"));
 }
