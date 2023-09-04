@@ -1,6 +1,11 @@
+<!DOCTYPE html>
 <html>
     <head>
-        <title>Idea Log</title>
+        <title>idea log</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1">
+        <link rel="stylesheet" href="/src/assets/css/style.css">
+        <link rel="icon" type="image/x-icon" href="">
         <script>
             window.onload = function() {
                 fetch('/api/profile?property=name')
@@ -14,7 +19,24 @@
         </script>
     </head>
     <body>
-        <p id="username">Loading...</p>
-        <a href="/auth/logout">logout</a>
+        <main>
+            <div class="title">
+                <button class="all">All</button> <span>></span> <input type="text"><button class="add">Add</button> <div class="categories"></div>
+                <div id="username">Loading...</div>
+                <a href="/auth/logout">logout</a>
+            </div>
+            <div class="content"><iframe></iframe></div>
+            <div class="textarea">
+                <div class="textarea_border_outer">
+                    <div class="textarea_border">
+                        <textarea rows="1"></textarea>
+                    </div>
+                </div>
+                <div class="button_outer">
+                    <button>▶</button>
+                </div>
+            </div>
+        </main>
+        <script type="module" src="/src/main.js"></script>
     </body>
 </html>
