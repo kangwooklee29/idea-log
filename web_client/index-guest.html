@@ -1,8 +1,23 @@
-<html>
-    <head>
-        <title>Hello World!</title>
-    </head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idea Log</title>
+</head>
     <body>
         <a href="/login">You need to log in first.</a>
+        <br><br>
+        Or, you can login with ID guest & PW guest.
+        <br><br>
+        <form action="/login/callback?guest=true" method="post">
+            <label for="id">ID:</label>
+            <input type="text" id="id" name="id" placeholder="Enter ID" value="guest" readonly>
+            <br><br>
+            <label for="password">PW:</label>
+            <input type="password" id="password" name="password" placeholder="Enter Password" value="guest" readonly>
+            <br><br>
+            <input type="submit" value="Login">
+        </form>
     </body>
 </html>
