@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile.web
     command: gunicorn flask_server.app:app --bind 0.0.0.0:8000  --access-logfile - --error-logfile - # Launches the 'app' from the flask_server.app module with Gunicorn, accessible on all interfaces at port 8000.
+    volumes:
+      - ./database:/app/database
 
   nginx:
     image: nginx:latest

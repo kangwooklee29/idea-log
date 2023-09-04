@@ -1,0 +1,23 @@
+#!/bin/bash
+
+SCRIPT_PATH="$(cd "$(dirname "$0")"; pwd -P)"
+ENV_PATH="$SCRIPT_PATH/../../flask_server/.env"
+
+if [[ -f $ENV_PATH ]]; then
+    sudo rm -f $ENV_PATH
+fi
+touch $ENV_PATH
+
+read -p "Input a new GOOGLE_OAUTH_CLIENT_ID? " GOOGLE_OAUTH_CLIENT_ID
+read -p "Input a new GOOGLE_OAUTH_CLIENT_SECRET? " GOOGLE_OAUTH_CLIENT_SECRET
+
+echo "GOOGLE_OAUTH_CLIENT_ID=$GOOGLE_OAUTH_CLIENT_ID" >> $ENV_PATH
+echo "GOOGLE_OAUTH_CLIENT_SECRET=$GOOGLE_OAUTH_CLIENT_SECRET" >> $ENV_PATH
+
+FLASK_SECRET_KEY=$(openssl rand -hex 32)
+echo "FLASK_SECRET_KEY=$FLASK_SECRET_KEY" >> $ENV_PATH
+
+echo "SQLALCHEMY_DATABASE_URI=/app/database/db.sqlite" >> $ENV_PATH
+
+echo "The content of a new env file for the flask server: "
+cat "$ENV_PATH"
