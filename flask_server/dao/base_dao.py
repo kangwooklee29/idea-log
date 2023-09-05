@@ -1,8 +1,10 @@
+from typing import Any, Dict
+
 from ..models import db
 
 class BaseDAO:
 
-    def save(self, entity):
+    def save(self, entity: Any) -> bool:
         try:
             db.session.add(entity)
             db.session.commit()
@@ -11,7 +13,7 @@ class BaseDAO:
             db.session.rollback()
             return False
 
-    def delete(self, entity):
+    def delete(self, entity: Any) -> bool:
         try:
             db.session.delete(entity)
             db.session.commit()
@@ -20,7 +22,7 @@ class BaseDAO:
             db.session.rollback()
             return False
 
-    def update(self, entity, **kwargs):
+    def update(self, entity: Any, **kwargs: Dict[str, Any]) -> bool:
         try:
             for key, value in kwargs.items():
                 setattr(entity, key, value)

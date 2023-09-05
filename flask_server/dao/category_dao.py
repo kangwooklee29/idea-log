@@ -1,3 +1,5 @@
+from typing import List, Optional
+
 from .base_dao import BaseDAO, db
 from ..models import Category
 from sqlalchemy.exc import SQLAlchemyError
@@ -6,10 +8,10 @@ DEFAULT_CATEGORIES = ['All', 'None', 'Deleted']
 
 class CategoryDAO(BaseDAO):
 
-    def fetch_by_user_id(self, user_id):
+    def fetch_by_user_id(self, user_id: str) -> List[Category]:
         return Category.query.filter_by(user_id=user_id).all()
 
-    def create_categories_for_user(self, user_id):
+    def create_categories_for_user(self, user_id: str) -> bool:
         try:
             for category_name in DEFAULT_CATEGORIES:
                 self.save(Category(name=category_name, user_id=user_id))
@@ -18,7 +20,7 @@ class CategoryDAO(BaseDAO):
             db.session.rollback()
             return False
 
-    def check_if_joined(self, user_id):
+    def check_if_joined(self, user_id: str) -> bool:
         try:        
             if db.session.query(Category).filter_by(user_id=user_id).first():
                 return True
@@ -28,7 +30,7 @@ class CategoryDAO(BaseDAO):
             db.session.rollback()
             return False
 
-    def update_category(self, name, category_id, user_id):
+    def update_category(self, name: str, category_id: Optional[str], user_id: str) -> bool:
         if not category_id:
             return self.save(Category(name=name, user_id=user_id))
         else:
