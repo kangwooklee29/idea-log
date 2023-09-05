@@ -3,7 +3,7 @@ from decouple import config
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_server import models
-from .routes import blueprint, blueprint_auth, blueprint_api
+from .blueprints import blueprint, blueprint_auth, blueprint_api
 
 STATIC_FOLDER = "../web_client"
 
