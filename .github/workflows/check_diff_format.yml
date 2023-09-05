@@ -4,9 +4,6 @@ on:
   pull_request:
     types:
       - synchronize
-  push:
-    branches:
-      - main
 
 jobs:
   lint:
@@ -25,11 +22,19 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pylint mypy
+        pip install pylint mypy ypaf
+        pip install --no-cache-dir -r flask_server/requirements-base.txt
         sudo apt-get install -y shfmt
 
     - name: Check Format on Diff
       run: bin/command/check-diff-format HEAD~1
 
     - name: Check Type Hints on Diff for Python codes
-      run: mypy .
+      run: |
+        FILES=$(git diff --name-only HEAD~1 HEAD | grep '\.py$')
+    
+        if [ ! -z "$FILES" ]; then
+          mypy $FILES
+        else
+          echo "No Python files were changed."
+        fi

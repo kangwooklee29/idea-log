@@ -14,13 +14,25 @@ PYTHON_FILES=$(echo "$CHANGED_FILES" | grep '\.py$')
 
 # Check the shell scripts using shfmt
 for file in $SHELL_FILES; do
-    echo "Checking $file..."
+    echo "Checking $file with shfmt..."
     shfmt -d -i 4 "$file"
     if [ $? -ne 0 ]; then # $? retrieves the exit code of the last command
         echo "Error in $file!"
         exit 1
     else
-        echo "Succeed!"
+        echo -e "Succeed!\n"
+    fi
+done
+
+# Check the python files using yapf
+for file in $PYTHON_FILES; do
+    echo "Checking $file with yapf..."
+    yapf -dr "$file"
+    if [ $? -ne 0 ]; then # $? retrieves the exit code of the last command
+        echo "Error in $file!"
+        exit 1
+    else
+        echo -e "Succeed!\n"
     fi
 done
 
