@@ -1,0 +1,44 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "Usage: $0 <commit or branch>"
+    exit 1
+fi
+
+# Get the list of changed files in comparison to the provided commit or branch
+CHANGED_FILES=$(git diff "$1" --name-only)
+
+# Filter only .sh and .py files
+SHELL_FILES=$(echo "$CHANGED_FILES" | grep -E '(\.sh$|^[^.]+$)')
+PYTHON_FILES=$(echo "$CHANGED_FILES" | grep '\.py$')
+
+# Check the shell scripts using shfmt
+for file in $SHELL_FILES; do
+    echo "Checking $file..."
+    shfmt -d -i 4 "$file"
+    if [ $? -ne 0 ]; then # $? retrieves the exit code of the last command
+        echo "Error in $file!"
+        exit 1
+    else
+        echo "Succeed!"
+    fi
+done
+
+# Check the python files using pylint
+for file in $PYTHON_FILES; do
+    # Generate pylint report for the file
+    pylint_report=$(mktemp)
+    pylint "$file" --output-format=text | tee "$pylint_report"
+
+    # Extract the changed lines for the file
+    CHANGED_LINES=$(git diff "$1" -U0 -- "$file" | perl -ne 'chomp(); if (/^\@\@ -\d+(,\d+)? \+(\d+)/) { $start = $2; $length = $1 || ",1"; $length =~ s/,//; for ($i = $start; $i < $start + $length; $i++) { print "$i\n" } }')
+
+    # Check pylint report for each changed line
+    echo "Checking $file with pylint..."
+    for line in $CHANGED_LINES; do
+        grep ":$line:" "$pylint_report"
+    done
+
+    # Remove the temporary pylint report
+    rm -f "$pylint_report"
+done
