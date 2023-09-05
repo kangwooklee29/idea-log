@@ -54,3 +54,9 @@ for file in $PYTHON_FILES; do
     # Remove the temporary pylint report
     rm -f "$pylint_report"
 done
+
+# Check the python files using mypy
+if [ ! -z "$PYTHON_FILES" ]; then
+    echo "Checking the python files with mypy..."
+    mypy $PYTHON_FILES
+fi
