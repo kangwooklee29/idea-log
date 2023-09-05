@@ -17,8 +17,8 @@ def index():
     """
     if 'profile' in session:
         return send_from_directory(current_app.static_folder,
-                                   'index-authenticated.html')
-    return send_from_directory(current_app.static_folder, 'index-guest.html')
+                                   'src/pages/index-authenticated.html')
+    return send_from_directory(current_app.static_folder, 'src/pages/index-guest.html')
 
 
 @blueprint.route('/<path:filename>')
