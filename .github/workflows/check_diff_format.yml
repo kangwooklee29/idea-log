@@ -1,0 +1,35 @@
+name: Check Formatting & Type Hints on Diff
+
+on:
+  pull_request:
+    types:
+      - synchronize
+  push:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 2  # Fetch the last two commits to get diff
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pylint mypy
+        sudo apt-get install -y shfmt
+
+    - name: Check Format on Diff
+      run: bin/command/check-diff-format HEAD~1
+
+    - name: Check Type Hints on Diff for Python codes
+      run: mypy .
