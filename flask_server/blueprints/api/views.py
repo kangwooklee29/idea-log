@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, session
-from flask_server import models
+from ...dao import category_dao, message_dao
 from urllib.parse import unquote
 
 blueprint_api = Blueprint('api', __name__)
@@ -21,7 +21,7 @@ def handle_api_profile():
 
 @blueprint_api.route('/fetch_categories')
 def fetch_categories():
-    return jsonify([cat.to_dict() for cat in models.fetch_categories(session.get('profile')['id'])])    
+    return jsonify([cat.to_dict() for cat in category_dao.fetch_by_user_id(session.get('profile')['id'])])    
 
 @blueprint_api.route('/write_message')
 def write_message():
@@ -30,7 +30,7 @@ def write_message():
     category_id = request.args.get('category_id', default='')
     msg_id = request.args.get('msg_id', default='')
 
-    if models.write_message(message, written_date, category_id, msg_id, session.get('profile')['id']):
+    if message_dao.write_message(message, written_date, category_id, msg_id, session.get('profile')['id']):
         return jsonify(success=True)
     return jsonify(success=False)
 
@@ -39,7 +39,7 @@ def update_category():
     name = unquote(request.args.get('name', default=''))
     category_id = request.args.get('id', default='')
 
-    if models.update_category(name, category_id, session.get('profile')['id']):
+    if category_dao.update_category(name, category_id, session.get('profile')['id']):
         return jsonify(success=True)
     return jsonify(success=False)
 
@@ -51,4 +51,4 @@ def fetch_messages():
     target_date = request.args.get('target_date')
     category_id = request.args.get('category_id')
 
-    return models.fetch_messages(target, limit, parent_msg_id, target_date, category_id,  session.get('profile')['id'])
+    return message_dao.fetch_messages(target, limit, parent_msg_id, target_date, category_id,  session.get('profile')['id'])

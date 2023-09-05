@@ -1,5 +1,5 @@
 from flask import Blueprint, current_app, jsonify, redirect, request, send_from_directory, session, url_for
-from flask_server import models
+from ...dao import category_dao
 import requests
 
 blueprint_auth = Blueprint('auth', __name__)
@@ -21,7 +21,7 @@ def authorized():
         session['profile'] = current_app.google_oauth.get('https://www.googleapis.com/oauth2/v1/userinfo').json()
         session['access_token'] = token['access_token']
 
-    if models.check_if_joined(session.get('profile')['id']):
+    if category_dao.check_if_joined(session.get('profile')['id']):
         return redirect(url_for('main.index'))
     return redirect(url_for('auth.user_join'))
 
@@ -41,7 +41,7 @@ def handle_join_action(action=None):
     """
 
     if action == 'agree':
-        if models.create_categories_for_user(session.get('profile')['id']):
+        if category_dao.create_categories_for_user(session.get('profile')['id']):
             return jsonify({'message': 'Successfully joined!', 'redirect_url': url_for('main.index')})
         else:
             return jsonify({'message': 'Failed to join.', 'redirect_url': url_for('auth.logout')})
