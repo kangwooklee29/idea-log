@@ -1,10 +1,12 @@
+from typing import Optional, Union, Any
+
 from .base_dao import BaseDAO, db
-from flask import jsonify
+from flask import jsonify, Response
 from ..models import Message
 
 class MessageDAO(BaseDAO):
 
-    def write_message(self, message, written_date, category_id, msg_id, user_id):
+    def write_message(self, message: str, written_date: str, category_id: str, msg_id: Optional[str], user_id: str) -> bool:
         try:
             if not msg_id:
                 new_message = Message(
@@ -45,7 +47,7 @@ class MessageDAO(BaseDAO):
             print(f"Error occurred: {e}")
             return False
 
-    def fetch_messages(self, target, limit, parent_msg_id, target_date, category_id, user_id):
+    def fetch_messages(self, target: str, limit: str, parent_msg_id: int, target_date: Optional[str], category_id: str, user_id: int) -> Response:
         # Get all messages for a particular parent
         if limit == "-1":
             messages = Message.query.filter_by(parent_msg_id=parent_msg_id).all()
