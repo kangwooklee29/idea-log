@@ -1,4 +1,4 @@
-import {api} from "./api.js";
+import {api} from "../utils/api.js";
 
 class Content {
     constructor($target)

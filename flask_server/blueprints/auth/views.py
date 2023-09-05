@@ -61,7 +61,7 @@ def user_join():
     if action:
         return handle_join_action(action)
 
-    return send_from_directory(current_app.static_folder, 'join.html')
+    return send_from_directory(current_app.static_folder, 'src/pages/join.html')
 
 
 def handle_join_action(action=None):
