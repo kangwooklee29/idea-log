@@ -1,0 +1,83 @@
+#!/bin/bash
+
+SCRIPT_NAME=$(basename "$0")
+SCRIPT_PATH="$(
+    cd "$(dirname "$0")"
+    pwd -P
+)"
+
+function usage() {
+    cat <<EOF
+Name:
+  $SCRIPT_NAME - A script to backup the env & db files in the remote host
+
+Description:
+  This script backups the env & db file in the remote host
+
+Usage: $SCRIPT_NAME [OPTIONS] "New card name"
+
+Options:
+  -u, --update-ip   Update the remote host IP & repo path
+  -h, --help        Display this help message
+
+Examples:
+  $SCRIPT_NAME                                   # Back up the env & db file in the remote host
+  $SCRIPT_NAME --update-ip                       # Update the remote host IP & repo path
+EOF
+}
+
+function check_env_file() {
+    if [[ ! -f "$SCRIPT_PATH"/.env ]]; then
+        echo "The .env file does not exist. Please create it using '$SCRIPT_NAME --update-ip' and try again."
+        exit 1
+    fi
+    source "$SCRIPT_PATH"/.env
+}
+
+function update_ip() {
+    echo "You are updating the remote host IP & repo path."
+    echo "WARN: If it is invalid, you can't use $SCRIPT_NAME anymore. Please ask the administrator for specific values to input before updating."
+
+    # ask the user if they have the specific values
+    read -p "Have you obtained the specific values from the administrator? (Y/n) " yn
+    [[ $yn =~ ^[Yy] ]] || {
+        echo "Please contact the administrator to get the values."
+        exit 1
+    }
+
+    # read the values from the user
+    read -p "Input a new remote host IP? " remote_ip
+    read -p "Input a new repo path? " repo_path
+    read -p "Input a new local path? " local_path
+
+    # save it to the .env file
+    echo "RemoteIP=\"$remote_ip\"" >"$SCRIPT_PATH"/.env
+    echo "RepoPath=\"$repo_path\"" >"$SCRIPT_PATH"/.env
+    echo "LocalPath=\"$local_path\"" >"$SCRIPT_PATH"/.env
+
+    echo "The content of a new env file: "
+    cat "$SCRIPT_PATH"/.env
+}
+
+function backup_db() {
+    rsync -avzh --include '*/' --include '*.env' --include '*.sqlite' --exclude '*' "${RemoteIP}:${RepoPath}/" "${LocalPath}"
+}
+
+# Parse options and arguments
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+    -u | --update-ip)
+        shift
+        ;;
+    -h | --help)
+        usage
+        exit 0
+        ;;
+    *) # Default case: If no option, then it's the card name
+        check_env_file
+        backup_db
+        shift
+        ;;
+    esac
+done
