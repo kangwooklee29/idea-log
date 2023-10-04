@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
 fi
 
 # Get the list of changed files in comparison to the provided commit or branch
-CHANGED_FILES=$(git diff "$1" --name-only)
+CHANGED_FILES=$(git diff "$1" --name-only --diff-filter=d)
 
 # Filter only .sh and .py files
 SHELL_FILES=$(echo "$CHANGED_FILES" | grep -E '(\.sh$|^[^.]+$)')
