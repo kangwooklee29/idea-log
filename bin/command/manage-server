@@ -1,0 +1,131 @@
+#!/bin/bash
+
+SCRIPT_NAME=$(basename "$0")
+SCRIPT_PATH="$(
+    cd "$(dirname "$0")"
+    pwd -P
+)"
+
+function usage() {
+    cat <<EOF
+Name:
+  $SCRIPT_NAME - A script for server management tasks.
+
+Description:
+  This script provides a unified interface to set up, back up, and configure
+  the server. 
+
+Usage: $SCRIPT_NAME <COMMAND> [OPTIONS] 
+
+Commands:
+  setup                    Set up the server on the host where this command is run.
+  backup                   Backup the db and env files from the target server, 
+                           specified in the host's environment variables, to the host 
+                           where this command is run.
+
+Options:
+  -h, --help               Display this help message.
+
+Options for 'backup' command:
+  --update-target          Update the backup target server's IP & repo path.
+
+Examples:
+  $SCRIPT_NAME setup                           # Set up the server on the host
+  $SCRIPT_NAME backup                          # Backup the db & env files from the target server
+  $SCRIPT_NAME backup --update-target          # Update the backup target server's IP & repo path
+EOF
+}
+
+if [ "$#" -eq 0 ] || [ "$1" == "--help" ]; then
+    usage
+    exit 0
+fi
+
+function setup_server() {
+    ENV_PATH="$SCRIPT_PATH/../../flask_server/.env"
+
+    if [[ -f $ENV_PATH ]]; then
+        sudo rm -f $ENV_PATH
+    fi
+    touch $ENV_PATH
+
+    read -p "Input a new GOOGLE_OAUTH_CLIENT_ID? " GOOGLE_OAUTH_CLIENT_ID
+    read -p "Input a new GOOGLE_OAUTH_CLIENT_SECRET? " GOOGLE_OAUTH_CLIENT_SECRET
+
+    echo "GOOGLE_OAUTH_CLIENT_ID=$GOOGLE_OAUTH_CLIENT_ID" >>$ENV_PATH
+    echo "GOOGLE_OAUTH_CLIENT_SECRET=$GOOGLE_OAUTH_CLIENT_SECRET" >>$ENV_PATH
+
+    FLASK_SECRET_KEY=$(openssl rand -hex 32)
+    echo "FLASK_SECRET_KEY=$FLASK_SECRET_KEY" >>$ENV_PATH
+
+    echo "SQLALCHEMY_DATABASE_URI=/app/database/db.sqlite" >>$ENV_PATH
+
+    echo "The content of a new env file for the flask server: "
+    cat "$ENV_PATH"
+}
+
+function check_env_file() {
+    if [[ ! -f "$SCRIPT_PATH"/.env ]]; then
+        echo "The .env file does not exist. Please create it using '$SCRIPT_NAME backup --update-target' and try again."
+        exit 1
+    fi
+    source "$SCRIPT_PATH"/.env
+}
+
+function update_target() {
+    echo "You are updating the target server's IP & repo path."
+    echo "WARN: If it is invalid, you can't use the backup command in $SCRIPT_NAME anymore. Please ask the administrator for specific values to input before updating."
+
+    # ask the user if they have the specific values
+    read -p "Have you obtained the specific values from the administrator? (Y/n) " yn
+    [[ $yn =~ ^[Yy] ]] || {
+        echo "Please contact the administrator to get the values."
+        exit 1
+    }
+
+    # read the values from the user
+    read -p "Input a new target server's IP? " target_ip
+    read -p "Input a new repo path in the target server? " target_repo_path
+    read -p "Input a new repo path in the current host? " local_repo_path
+
+    # save it to the .env file
+    echo "TargetIP=\"$target_ip\"" >"$SCRIPT_PATH"/.env
+    echo "TargetRepoPath=\"$target_repo_path\"" >"$SCRIPT_PATH"/.env
+    echo "LocalRepoPath=\"$local_repo_path\"" >"$SCRIPT_PATH"/.env
+
+    echo "The content of a new env file: "
+    cat "$SCRIPT_PATH"/.env
+}
+
+function backup_db() {
+    rsync -avzh --include '*/' --include '*.env' --include '*.sqlite' --exclude '*' "${RemoteIP}:${RepoPath}/" "${LocalPath}"
+}
+
+case $1 in
+setup)
+    setup_server
+    exit 0
+    ;;
+backup)
+    shift
+    ;;
+*)
+    echo "Unknown command: $1"
+    usage
+    exit 1
+    ;;
+esac
+
+# Parse options and arguments
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+    -u | --update-target)
+        update_target
+        ;;
+    *)
+        check_env_file
+        backup_db
+        ;;
+    esac
+done
