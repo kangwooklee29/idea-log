@@ -25,6 +25,8 @@ def create_app():
     flask_app = Flask(__name__,
                       static_url_path='',
                       static_folder=STATIC_FOLDER)
+    flask_app.config[
+        'SESSION_COOKIE_SECURE'] = True  # allow HTTPS only for session cookie
     flask_app.secret_key = config('FLASK_SECRET_KEY')
     flask_app.wsgi_app = ProxyFix(flask_app.wsgi_app, x_proto=1)
     flask_app.google_oauth = OAuth(flask_app).register(
