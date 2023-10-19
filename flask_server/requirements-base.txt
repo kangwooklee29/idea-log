@@ -1,5 +1,6 @@
 Authlib
 flask
+flask_cors
 Flask-SQLAlchemy
 gunicorn
 python-decouple
