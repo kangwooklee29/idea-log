@@ -8,6 +8,7 @@ from authlib.integrations.flask_client import OAuth
 from decouple import config
 
 from flask import Flask
+from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_server import models
 from .blueprints import blueprint, blueprint_auth, blueprint_api
@@ -27,6 +28,9 @@ def create_app():
                       static_folder=STATIC_FOLDER)
     flask_app.config[
         'SESSION_COOKIE_SECURE'] = True  # allow HTTPS only for session cookie
+    CORS(flask_app,
+         origins=[config('DOMAIN_NAME')
+                  ])  # allow requests only from the configured domain name
     flask_app.secret_key = config('FLASK_SECRET_KEY')
     flask_app.wsgi_app = ProxyFix(flask_app.wsgi_app, x_proto=1)
     flask_app.google_oauth = OAuth(flask_app).register(
