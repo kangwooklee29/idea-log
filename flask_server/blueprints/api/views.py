@@ -11,6 +11,19 @@ blueprint_api = Blueprint('api', __name__)
 ALLOWED_PROPERTIES_API_PROFILE = {'name'}
 
 
+@blueprint_api.before_request
+def verify_authentication():
+    """
+    Verify if the user is authenticated before processing the request.
+
+    Returns:
+    - Response: JSON message
+    """
+    if 'profile' not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    return None
+
+
 @blueprint_api.route('/profile')
 def handle_api_profile():
     """

@@ -34,6 +34,12 @@ def authorized():
     Returns:
     - Response: The redirect object
     """
+
+    if 'state' not in session or 'state' not in request.args or session[
+            'state'] != request.args['state']:
+        # Invalid state, possibly due to CSRF
+        return "Invalid state parameter", 400
+
     is_guest = request.args.get('guest', default=False, type=bool)
 
     if is_guest:
@@ -61,7 +67,8 @@ def user_join():
     if action:
         return handle_join_action(action)
 
-    return send_from_directory(current_app.static_folder, 'src/pages/join.html')
+    return send_from_directory(current_app.static_folder,
+                               'src/pages/join.html')
 
 
 def handle_join_action(action=None):
