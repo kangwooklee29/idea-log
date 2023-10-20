@@ -3,6 +3,7 @@ flask
 flask_cors
 Flask-SQLAlchemy
 gunicorn
+pytest
 python-decouple
 requests
 types-requests
