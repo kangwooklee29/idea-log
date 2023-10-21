@@ -1,8 +1,11 @@
 """
 flask_server/tests/blueprints/api/test_views.py
 """
+# pylint: disable=redefined-outer-name
 
+from unittest.mock import patch
 import pytest
+from ....models import Category
 from ....app import create_app
 
 
@@ -18,52 +21,99 @@ def test_client():
         yield client
 
 
-def test_not_authenticated(client):
+def test_not_authenticated(test_client):
     """Ensure unauthenticated requests are rejected with a 401 status.
 
     Args:
-        client (Flask test client): A test client instance for the Flask app.
+        test_client (Flask test client): A test client instance for the Flask app.
 
     Returns:
         None: This function only asserts expected outcomes.
     """
-    response = client.get('/api/profile')
+    response = test_client.get('/api/profile')
     assert response.status_code == 401
     assert response.get_json() == {"error": "Not authenticated"}
 
 
-def test_invalid_property_request(client):
+def test_invalid_property_request(test_client):
     """Ensure requests with invalid properties return a 400 status.
 
     Args:
-        client (Flask test client): A test client instance for the Flask app.
+        test_client (Flask test client): A test client instance for the Flask app.
 
     Returns:
         None: This function only asserts expected outcomes.
     """
-    with client.session_transaction() as sess:
+    with test_client.session_transaction() as sess:
         sess['profile'] = {'name': 'guest'}
-    response = client.get('/api/profile',
-                          query_string={'property': 'invalid_property'})
+    response = test_client.get('/api/profile',
+                               query_string={'property': 'invalid_property'})
     assert response.status_code == 400
     assert response.get_json() == {
         "error": "'invalid_property' is not a valid property."
     }
 
 
-def test_valid_property_request(client):
+def test_valid_property_request(test_client):
     """Test a valid property request.
 
     This test simulates a session where a 'profile' exists and checks for the expected value
     of the 'name' property in the response.
 
     Args:
-        client (Flask test client): A test client instance for the Flask app.
+        test_client (Flask test client): A test client instance for the Flask app.
 
     Returns:
         None: This function only asserts expected outcomes.
     """
-    with client.session_transaction() as sess:
+    with test_client.session_transaction() as sess:
         sess['profile'] = {'name': 'guest'}
-    response = client.get('/api/profile', query_string={'property': 'name'})
+    response = test_client.get('/api/profile',
+                               query_string={'property': 'name'})
     assert response.get_json() == {"value": "guest"}
+
+
+@pytest.fixture
+def mock_fetch_by_user_id():
+    """
+    Mock the fetch_by_user_id method to return a predefined list of categories.
+
+    Returns:
+        MagicMock: A mocked instance of fetch_by_user_id method.
+    """
+    mock_categories = [
+        Category(id=1, name="Category 1", user_id="test_user"),
+        Category(id=2, name="Category 2", user_id="test_user")
+    ]
+    with patch('flask_server.dao.category_dao.fetch_by_user_id',
+               return_value=mock_categories) as _mocked:
+        yield _mocked
+
+
+def test_fetch_categories(test_client, mock_fetch_by_user_id):
+    """
+    Test fetching categories for a user.
+
+    Args:
+        test_client (FlaskClient): Flask test client instance.
+        mock_fetch_by_user_id (MagicMock): Mocked method returning predefined categories.
+
+    Returns:
+        None
+    """
+    with test_client.session_transaction() as sess:
+        sess['profile'] = {'id': 'test_user'}
+
+    response = test_client.get('/api/fetch_categories')
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert len(data) == 2
+    assert data[0]['id'] == 1
+    assert data[0]['name'] == "Category 1"
+    assert data[0]['user_id'] == "test_user"
+    assert data[1]['id'] == 2
+    assert data[1]['name'] == "Category 2"
+    assert data[1]['user_id'] == "test_user"
+
+    mock_fetch_by_user_id.assert_called_with('test_user')
