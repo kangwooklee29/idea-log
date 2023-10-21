@@ -8,7 +8,6 @@ from authlib.integrations.flask_client import OAuth
 from decouple import config
 
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_server import models
@@ -33,7 +32,6 @@ def create_app(is_test: bool = False):
         CORS(flask_app,
              origins=[config('DOMAIN_NAME')
                       ])  # allow requests only from the configured domain name
-        flask_app.secret_key = config('FLASK_SECRET_KEY')
         flask_app.wsgi_app = ProxyFix(  # type: ignore
             flask_app.wsgi_app, x_proto=1)
         flask_app.google_oauth = OAuth(flask_app).register(  # type: ignore
@@ -48,6 +46,7 @@ def create_app(is_test: bool = False):
             redirect_to='authorized',
             client_kwargs={'scope': 'profile email'},
         )
+    flask_app.secret_key = config('FLASK_SECRET_KEY')
     flask_app.register_blueprint(blueprint, url_prefix='')
     flask_app.register_blueprint(blueprint_auth, url_prefix='/auth')
     flask_app.register_blueprint(blueprint_api, url_prefix='/api')
@@ -65,6 +64,7 @@ def create_app(is_test: bool = False):
     return flask_app
 
 
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
     app.run(host='0.0.0.0', debug=True)
