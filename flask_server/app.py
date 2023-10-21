@@ -62,9 +62,3 @@ def create_app(is_test: bool = False):
         flask_app.db.create_all()  # type: ignore
 
     return flask_app
-
-
-app = create_app()
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)

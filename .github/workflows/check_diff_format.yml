@@ -25,7 +25,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pylint mypy yapf
         pip install --no-cache-dir -r flask_server/requirements-base.txt
-        sudo apt-get install -y shfmt
+        sudo apt-get install -y shfmt sqlite3
 
     - name: Check Format on Diff
       run: bin/command/check-diff-format HEAD~1
@@ -34,9 +34,7 @@ jobs:
       run: |
         FLASK_SECRET_KEY=$(openssl rand -hex 32)
         echo "FLASK_SECRET_KEY=$FLASK_SECRET_KEY" >>flask_server/.env
-        echo "SQLALCHEMY_DATABASE_URI=/app/database/db.sqlite" >>flask_server/.env
+        echo "SQLALCHEMY_DATABASE_URI=$PWD/database/db.sqlite" >>flask_server/.env
         sudo mkdir database
         sudo chmod 777 database
-        sudo touch database/db.sqlite
-        sudo chmod 777 database/db.sqlite
-        sudo docker-compose up --build pytest
+        pytest
