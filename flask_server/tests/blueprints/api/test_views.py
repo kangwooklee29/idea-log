@@ -4,10 +4,14 @@ flask_server/tests/blueprints/api/test_views.py
 # pylint: disable=redefined-outer-name
 # pylint: disable=unused-argument
 
-from unittest.mock import patch
 import pytest
 from ....models import Category
 from ....app import create_app
+from ....dao import category_dao
+
+app = create_app(True)
+with app.app_context():
+    category_dao.create_categories_for_user("test_user")
 
 
 @pytest.fixture
@@ -17,7 +21,6 @@ def test_client():
     Returns:
         Flask test client instance.
     """
-    app = create_app(True)
     with app.test_client() as client:
         yield client
 
@@ -78,17 +81,9 @@ def test_valid_property_request(test_client):
 def mock_fetch_by_user_id():
     """
     Mock the fetch_by_user_id method to return a predefined list of categories.
-
-    Returns:
-        MagicMock: A mocked instance of fetch_by_user_id method.
     """
-    mock_categories = [
-        Category(id=1, name="Category 1", user_id="test_user"),
-        Category(id=2, name="Category 2", user_id="test_user")
-    ]
-    with patch('flask_server.dao.category_dao.fetch_by_user_id',
-               return_value=mock_categories) as _mocked:
-        yield _mocked
+    with app.app_context():
+        category_dao.fetch_by_user_id("test_user")
 
 
 def test_fetch_categories(test_client, mock_fetch_by_user_id):
@@ -109,18 +104,19 @@ def test_fetch_categories(test_client, mock_fetch_by_user_id):
     data = response.get_json()
 
     assert response.status_code == 200
-    assert len(data) == 2
+    assert len(data) == 3
     assert data[0]['id'] == 1
-    assert data[0]['name'] == "Category 1"
+    assert data[0]['name'] == "All"
     assert data[0]['user_id'] == "test_user"
     assert data[1]['id'] == 2
-    assert data[1]['name'] == "Category 2"
+    assert data[1]['name'] == "None"
     assert data[1]['user_id'] == "test_user"
+    assert data[2]['id'] == 3
+    assert data[2]['name'] == "Deleted"
+    assert data[2]['user_id'] == "test_user"
 
-    mock_fetch_by_user_id.assert_called_with('test_user')
 
-
-def test_update_category(test_client, mock_fetch_by_user_id):
+def test_update_category(test_client):
     """Test updating an existing category.
     
     Given:
