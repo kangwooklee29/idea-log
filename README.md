@@ -6,6 +6,8 @@
 
 ## 서버 설치 방법
 
+### flask 서버의 경우
+
 ```bash
 bin/command/one-time-setup
 ```
@@ -23,6 +25,21 @@ sudo docker-compose up --build
 ```
 
 위 커맨드를 실행하여 서버를 실행합니다.
+
+### 새 GCP 프로젝트에 Cloud Functions로 배포하는 경우
+
+1. 새로운 GCP 프로젝트 생성 및 설정
+
+```bash
+./bin/setup-new-gcp-project.sh
+```
+
+2. 현재 디렉토리 내 파일들을 현재 GCP 프로젝트로 배포
+
+```bash
+gcloud builds submit --config cloudbuild.yaml .
+```
+
 
 ## 기술상의 특징
 

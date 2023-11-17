@@ -1,0 +1,19 @@
+env_variables:
+  REGION: 'asia-northeast3'
+  FUNCTION_NAME: 'hello_world_function'
+
+steps:
+  # read PROJECT_ID from .env
+  - name: 'bash'
+    args: ['if [ -f bin/.env ]; then source bin/.env && gcloud config set project $PROJECT_ID; fi']
+    entrypoint: '/bin/sh'
+
+  # deploy
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['functions', 'deploy', '$FUNCTION_NAME', '--runtime', 'python39', '--trigger-http', '--entry-point', 'hello_world', '--source', './gcp_cloud_functions/hello_world', '--region', '$REGION']
+
+  # set permissions
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['functions', 'add-iam-policy-binding', '$FUNCTION_NAME', '--region', '$REGION', '--member', 'allUsers', '--role', 'roles/cloudfunctions.invoker']
+
+timeout: '1600s'
