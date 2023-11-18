@@ -1,0 +1,18 @@
+swagger: "2.0"
+info:
+  title: "hello_world_api"
+  description: "API for the hello_world_function"
+  version: "1.0.0"
+host: "REGION-PROJECT_ID.cloudfunctions.net"
+schemes:
+  - "https"
+paths:
+  /api/hello_world:
+    get:
+      summary: "Invoke the hello_world_function"
+      operationId: "hello"
+      x-google-backend:
+        address: "https://REGION-PROJECT_ID.cloudfunctions.net/hello_world_function"
+      responses:
+        '200':
+          description: "Successful response"

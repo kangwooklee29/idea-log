@@ -37,7 +37,7 @@ sudo docker-compose up --build
 2. 현재 디렉토리 내 파일들을 현재 GCP 프로젝트로 배포
 
 ```bash
-gcloud builds submit --config cloudbuild.yaml .
+gcloud builds submit --config cloudbuild.yaml . --substitutions=_TIMESTAMP=$(date +%s)
 ```
 
 
