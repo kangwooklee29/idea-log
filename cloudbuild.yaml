@@ -1,19 +1,35 @@
-env_variables:
-  REGION: 'asia-northeast3'
-  FUNCTION_NAME: 'hello_world_function'
+substitutions:
+  _REGION: 'asia-northeast3'
+  _PROJECT_ID: 'red-girder-405405'
+  _TIMESTAMP: ''
 
 steps:
-  # read PROJECT_ID from .env
-  - name: 'bash'
-    args: ['if [ -f bin/.env ]; then source bin/.env && gcloud config set project $PROJECT_ID; fi']
-    entrypoint: '/bin/sh'
-
-  # deploy
+  # update project setting and api-config.yaml
   - name: 'gcr.io/cloud-builders/gcloud'
-    args: ['functions', 'deploy', '$FUNCTION_NAME', '--runtime', 'python39', '--trigger-http', '--entry-point', 'hello_world', '--source', './gcp_cloud_functions/hello_world', '--region', '$REGION']
+    entrypoint: '/bin/bash'
+    args:
+      - '-c'
+      - |
+        gcloud config set project $_PROJECT_ID
 
-  # set permissions
+  # deploy Cloud Functions
   - name: 'gcr.io/cloud-builders/gcloud'
-    args: ['functions', 'add-iam-policy-binding', '$FUNCTION_NAME', '--region', '$REGION', '--member', 'allUsers', '--role', 'roles/cloudfunctions.invoker']
+    args: ['functions', 'deploy', 'hello_world_function', '--runtime', 'python39', '--trigger-http', '--entry-point', 'hello_world', '--source', './gcp_cloud_functions/hello_world', '--region', '$_REGION']
+
+  # create API Gateways and deploy
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: '/bin/bash'
+    args:
+      - '-c'
+      - |
+        gcloud api-gateway apis create hello-world-api || true
+
+        sed -i 's/REGION-PROJECT_ID/${_REGION}-${_PROJECT_ID}/g' api-config.yaml
+        gcloud api-gateway api-configs create hello-world-api-config-"${_TIMESTAMP}" --api=hello-world-api --openapi-spec=api-config.yaml --backend-auth-service-account=${_PROJECT_ID}@appspot.gserviceaccount.com || true
+
+        gcloud api-gateway gateways create hello-world-gateway --api=hello-world-api --api-config=hello-world-api-config-"${_TIMESTAMP}" --location=us-central1 \
+          || gcloud api-gateway gateways update hello-world-gateway --api-config=hello-world-api-config-"${_TIMESTAMP}"
+
+        gcloud api-gateway gateways describe hello-world-gateway --location=us-central1
 
 timeout: '1600s'
