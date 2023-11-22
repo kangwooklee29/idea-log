@@ -1,7 +1,6 @@
 substitutions:
   _REGION: 'asia-northeast3'
   _PROJECT_ID: 'red-girder-405405'
-  _TIMESTAMP: ''
 
 steps:
   # update project setting and api-config.yaml
@@ -14,7 +13,11 @@ steps:
 
   # deploy Cloud Functions
   - name: 'gcr.io/cloud-builders/gcloud'
-    args: ['functions', 'deploy', 'hello_world_function', '--runtime', 'python39', '--trigger-http', '--entry-point', 'hello_world', '--source', './gcp_cloud_functions/hello_world', '--region', '$_REGION']
+    entrypoint: '/bin/bash'
+    args:
+      - '-c'
+      - |
+        gcloud functions deploy get_static_file --runtime python39 --trigger-http --allow-unauthenticated --entry-point get_static_file --source ./gcp_cloud_functions/get_static_file --region $_REGION
 
   # create API Gateways and deploy
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -22,14 +25,25 @@ steps:
     args:
       - '-c'
       - |
-        gcloud api-gateway apis create hello-world-api || true
+        if ! gcloud api-gateway apis describe idea-log-api; then
+          gcloud api-gateway apis create idea-log-api --quiet
+        fi
 
         sed -i 's/REGION-PROJECT_ID/${_REGION}-${_PROJECT_ID}/g' api-config.yaml
-        gcloud api-gateway api-configs create hello-world-api-config-"${_TIMESTAMP}" --api=hello-world-api --openapi-spec=api-config.yaml --backend-auth-service-account=${_PROJECT_ID}@appspot.gserviceaccount.com || true
 
-        gcloud api-gateway gateways create hello-world-gateway --api=hello-world-api --api-config=hello-world-api-config-"${_TIMESTAMP}" --location=us-central1 \
-          || gcloud api-gateway gateways update hello-world-gateway --api-config=hello-world-api-config-"${_TIMESTAMP}"
+        if gcloud api-gateway api-configs describe idea-log-api-config --api=idea-log-api; then
+          gcloud api-gateway gateways delete idea-log-gateway --location=us-central1 --quiet
+          gcloud api-gateway api-configs delete idea-log-api-config --api=idea-log-api --quiet
+        fi
 
-        gcloud api-gateway gateways describe hello-world-gateway --location=us-central1
+        gcloud api-gateway api-configs create idea-log-api-config --api=idea-log-api --openapi-spec=api-config.yaml --backend-auth-service-account=${_PROJECT_ID}@appspot.gserviceaccount.com --quiet
+
+        if ! gcloud api-gateway gateways describe idea-log-gateway --location=us-central1; then
+          gcloud api-gateway gateways delete idea-log-gateway --location=us-central1 --quiet
+        fi
+
+        gcloud api-gateway gateways create idea-log-gateway --api=idea-log-api --api-config=idea-log-api-config --location=us-central1 --quiet
+
+        gcloud api-gateway gateways describe idea-log-gateway --location=us-central1
 
 timeout: '1600s'
