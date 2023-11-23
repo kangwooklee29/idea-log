@@ -1,18 +1,90 @@
 swagger: "2.0"
 info:
-  title: "hello_world_api"
-  description: "API for the hello_world_function"
+  title: "idea_log_api"
+  description: "API endpoints for idea_log_api"
   version: "1.0.0"
 host: "REGION-PROJECT_ID.cloudfunctions.net"
 schemes:
   - "https"
 paths:
-  /api/hello_world:
+  /:
     get:
-      summary: "Invoke the hello_world_function"
-      operationId: "hello"
+      summary: Get index file
+      operationId: getIndexFile
       x-google-backend:
-        address: "https://REGION-PROJECT_ID.cloudfunctions.net/hello_world_function"
+        address: https://REGION-PROJECT_ID.cloudfunctions.net/get_static_file/src/pages/index-authenticated.html
       responses:
         '200':
-          description: "Successful response"
+          description: A successful response
+
+  /{dir}/{file}:
+    get:
+      summary: Get static file
+      operationId: getStaticFiles1
+      x-google-backend:
+        address: https://REGION-PROJECT_ID.cloudfunctions.net/get_static_file
+        path_translation: "APPEND_PATH_TO_ADDRESS"
+      parameters:
+        - name: dir
+          in: path
+          required: true
+          type: string
+        - name: file
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: A successful response
+
+  /{dir1}/{dir2}/{file}:
+    get:
+      summary: Get static file
+      operationId: getStaticFiles2
+      x-google-backend:
+        address: https://REGION-PROJECT_ID.cloudfunctions.net/get_static_file
+        path_translation: "APPEND_PATH_TO_ADDRESS"
+      parameters:
+        - name: dir1
+          in: path
+          required: true
+          type: string
+        - name: dir2
+          in: path
+          required: true
+          type: string
+        - name: file
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: A successful response
+
+  /{dir1}/{dir2}/{dir3}/{file}:
+    get:
+      summary: Get static file
+      operationId: getStaticFiles3
+      x-google-backend:
+        address: https://REGION-PROJECT_ID.cloudfunctions.net/get_static_file
+        path_translation: "APPEND_PATH_TO_ADDRESS"
+      parameters:
+        - name: dir1
+          in: path
+          required: true
+          type: string
+        - name: dir2
+          in: path
+          required: true
+          type: string
+        - name: dir3
+          in: path
+          required: true
+          type: string
+        - name: file
+          in: path
+          required: true
+          type: string
+      responses:
+        '200':
+          description: A successful response
