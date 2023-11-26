@@ -1,0 +1,10 @@
+steps:
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args: ['cp', '-r', 'web_client', 'gcp_app_engine/']
+
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args: ['cp', 'client_secret.json', 'gcp_app_engine/']
+
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['app', 'deploy', '--quiet']
+    dir: 'gcp_app_engine'
