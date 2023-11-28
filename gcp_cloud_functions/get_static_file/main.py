@@ -2,9 +2,10 @@
 gcp_cloud_functions/get_static_file/main.py
 """
 
-import requests
 import gzip
 import logging
+import uuid
+import requests
 from flask import make_response
 
 
@@ -32,10 +33,15 @@ def get_static_file(request):
             if key.lower() != 'content-encoding'
         }
 
-        return make_response((content, response.status_code, headers))
+        response = make_response((content, response.status_code, headers))
+
+        if not request.cookies.get('session_id'):
+            response.set_cookie('session_id', str(uuid.uuid4()))
+
+        return response
     except requests.exceptions.RequestException as e:
-        logging.error(f'RequestException: {e}')
-        return (f'File not found', 404, {'Content-Type': 'text/plain'})
+        logging.error('RequestException: %s', e)
+        return ('File not found', 404, {'Content-Type': 'text/plain'})
     except Exception as e:
-        logging.error(f'Unexpected error: {e}')
+        logging.error('Unexpected error: %s', e)
         return ('Internal Server Error', 500, {'Content-Type': 'text/plain'})

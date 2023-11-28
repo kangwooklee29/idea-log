@@ -36,6 +36,6 @@ gcloud services enable apigateway.googleapis.com
 echo "Adding necessary roles to each service account..."
 PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')
 gcloud projects add-iam-policy-binding $PROJECT_ID --member=serviceAccount:$PROJECT_NUMBER@cloudbuild.gserviceaccount.com --role=roles/apigateway.admin
+gcloud projects add-iam-policy-binding $PROJECT_ID --member=serviceAccount:$PROJECT_ID@appspot.gserviceaccount.com --role=roles/datastore.user
 gcloud iam service-accounts add-iam-policy-binding $PROJECT_ID@appspot.gserviceaccount.com --member=serviceAccount:$PROJECT_NUMBER@cloudbuild.gserviceaccount.com --role=roles/iam.serviceAccountUser
-
 echo "APIs are successfully enabled and project is set."

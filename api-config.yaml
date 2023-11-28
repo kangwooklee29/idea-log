@@ -17,6 +17,46 @@ paths:
         '200':
           description: A successful response
 
+  /auth/join:
+    get:
+      summary: Handle join actions
+      operationId: handleJoinAction
+      x-google-backend:
+        address: https://REGION-PROJECT_ID.cloudfunctions.net/user_join
+      responses:
+        '200':
+          description: A successful response
+
+  /auth/logout:
+    get:
+      summary: Handle logout actions
+      operationId: logout
+      x-google-backend:
+        address: https://REGION-PROJECT_ID.cloudfunctions.net/logout
+      responses:
+        '200':
+          description: A successful response
+
+  /auth/login:
+    get:
+      summary: Handle login actions
+      operationId: login
+      x-google-backend:
+        address: https://REGION-PROJECT_ID.cloudfunctions.net/login
+      responses:
+        '200':
+          description: A successful response
+
+  /auth/login/callback:
+    get:
+      summary: Handle login_callback actions
+      operationId: login_callback
+      x-google-backend:
+        address: https://REGION-PROJECT_ID.cloudfunctions.net/login_callback
+      responses:
+        '200':
+          description: A successful response
+
   /{dir}/{file}:
     get:
       summary: Get static file

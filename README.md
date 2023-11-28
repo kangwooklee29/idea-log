@@ -34,7 +34,9 @@ sudo docker-compose up --build
 ./bin/setup-new-gcp-project.sh
 ```
 
-2. 현재 디렉토리 내 파일들을 현재 GCP 프로젝트로 배포
+2. 그 GCP 프로젝트의 사용자 인증 정보에서 OAuth 클라이언트 ID 생성 후, 그 비밀번호를 JSON 파일로 다운받아 루트 디렉토리로 이동
+
+3. 현재 디렉토리 내 파일들을 현재 GCP 프로젝트로 배포
 
 ```bash
 gcloud builds submit --config cloudbuild.yaml .
