@@ -2,17 +2,21 @@
 gcp_cloud_functions/auth/login/main.py
 """
 
+import json
 import firebase_admin  # pylint: disable=import-error
 import google_auth_oauthlib.flow  # pylint: disable=import-error
-import json
 from flask import redirect, make_response
 from firebase_admin import firestore  # pylint: disable=import-error
 
 CLIENT_SECRETS_FILE = "client_secret.json"
-SCOPES = ['https://www.googleapis.com/auth/userinfo.email', 'openid']
+SCOPES = [
+    'https://www.googleapis.com/auth/userinfo.email', 'openid',
+    'https://www.googleapis.com/auth/userinfo.profile'
+]
 
 
 def login(request):
+    """Handles login request"""
     with open(CLIENT_SECRETS_FILE, 'r') as file:
         data = json.load(file)
 

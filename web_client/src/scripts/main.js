@@ -8,7 +8,11 @@ class Title{
         this.add_button_hide();
         this.add_button_obj.addEventListener("click", ()=> this.add_category());
         this.all_button_obj = $target.querySelector("button.all");
-        this.all_button_obj.addEventListener("click", () => { this.clear_input(); this.move_category(1); });
+        this.all_button_obj.addEventListener("click", () => {
+            this.clear_input();
+            const allCategory = document.querySelectorAll("button.categories").find(button => button.innerText === "All");
+            this.move_category(allCategory.id.replace("category_", ""));
+        });
 
         this.input_obj = $target.querySelector("input");
         this.input_obj.addEventListener("focus", ()=>{this.clear_input(); this.show_categories();});
@@ -92,6 +96,10 @@ class Title{
             const noneCategory = this.categories.find(category => category.name === "None");
             if (noneCategory) {
                 user_none_category_id = noneCategory.id;
+            }
+            const deletedCategory = this.categories.find(category => category.name === "Deleted");
+            if (deletedCategory) {
+                localStorage.setItem('deleted_category_id', deletedCategory.id);
             }
         }).catch(error=>{
             alert(error);
@@ -263,7 +271,7 @@ class Textarea {
         this.textarea_obj.value = "";
         this.reset_textarea_height();
 
-        api.get({mode:"write_message", message:encodeURIComponent(temp), written_date:Date.now(), category_id: user_none_category_id})
+        api.post({mode:"write_message", message:temp, written_date:Date.now(), category_id: user_none_category_id})
         .then(response => {
             if (response.ok)
             {

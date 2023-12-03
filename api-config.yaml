@@ -12,7 +12,7 @@ paths:
       summary: Get index file
       operationId: getIndexFile
       x-google-backend:
-        address: https://REGION-PROJECT_ID.cloudfunctions.net/get_static_file/src/pages/index-authenticated.html
+        address: https://REGION-PROJECT_ID.cloudfunctions.net/get_static_file
       responses:
         '200':
           description: A successful response
@@ -49,10 +49,68 @@ paths:
 
   /auth/login/callback:
     get:
-      summary: Handle login_callback actions
-      operationId: login_callback
+      summary: Handle login_callback actions for GET method
+      operationId: login_callback_get
       x-google-backend:
         address: https://REGION-PROJECT_ID.cloudfunctions.net/login_callback
+      responses:
+        '200':
+          description: A successful response
+    post:
+      summary: Handle login_callback actions for POST method
+      operationId: login_callback_post
+      x-google-backend:
+        address: https://REGION-PROJECT_ID.cloudfunctions.net/login_callback
+      responses:
+        '200':
+          description: A successful response
+
+  /api/fetch_categories:
+    get:
+      summary: Handle fetch_categories actions
+      operationId: fetch_categories
+      x-google-backend:
+        address: https://REGION-PROJECT_ID.cloudfunctions.net/fetch_categories
+      responses:
+        '200':
+          description: A successful response
+
+  /api/fetch_messages:
+    get:
+      summary: Handle fetch_messages actions
+      operationId: fetch_messages
+      x-google-backend:
+        address: https://REGION-PROJECT_ID.cloudfunctions.net/fetch_messages
+      responses:
+        '200':
+          description: A successful response
+
+  /api/profile:
+    get:
+      summary: Fetch profile info
+      operationId: profile
+      x-google-backend:
+        address: https://REGION-PROJECT_ID.cloudfunctions.net/profile
+      responses:
+        '200':
+          description: A successful response
+
+  /api/update_category:
+    get:
+      summary: Handle update_category actions
+      operationId: update_category
+      x-google-backend:
+        address: https://REGION-PROJECT_ID.cloudfunctions.net/update_category
+      responses:
+        '200':
+          description: A successful response
+
+  /api/write_message:
+    post:
+      summary: Handle write_message actions
+      operationId: write_message
+      x-google-backend:
+        address: https://REGION-PROJECT_ID.cloudfunctions.net/write_message
       responses:
         '200':
           description: A successful response

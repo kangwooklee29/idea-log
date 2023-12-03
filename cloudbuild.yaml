@@ -52,9 +52,17 @@ steps:
         directories[login]="./gcp_cloud_functions/auth/login"
         directories[login_callback]="./gcp_cloud_functions/auth/login_callback"
 
+        directories[fetch_categories]="./gcp_cloud_functions/api/fetch_categories"
+        directories[fetch_messages]="./gcp_cloud_functions/api/fetch_messages"
+        directories[profile]="./gcp_cloud_functions/api/profile"
+        directories[update_category]="./gcp_cloud_functions/api/update_category"
+        directories[write_message]="./gcp_cloud_functions/api/write_message"
+
+        cp -f client_secret.json "${directories[login]}"
+        cp -f client_secret.json "${directories[login_callback]}"
+
         for key in "${!directories[@]}"; do
-          cp -f client_secret.json "${directories[$key]}"
-          gcloud fucntions deploy $key --runtime python39 --trigger-http --allow-unauthenticated --entry-point $key --source "${directories[$key]}" --region $_REGION
+          gcloud functions deploy $key --runtime python39 --trigger-http --allow-unauthenticated --entry-point $key --source "${directories[$key]}" --region $_REGION
         done
 
 timeout: '1600s'

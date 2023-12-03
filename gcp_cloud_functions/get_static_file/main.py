@@ -5,8 +5,10 @@ gcp_cloud_functions/get_static_file/main.py
 import gzip
 import logging
 import uuid
+import firebase_admin  # pylint: disable=import-error
 import requests
 from flask import make_response
+from firebase_admin import firestore  # pylint: disable=import-error
 
 
 def get_static_file(request):
@@ -16,6 +18,21 @@ def get_static_file(request):
 
     path = request.path
     base_url = 'https://kangwooklee29.github.io/idea-log/web_client'
+
+    session_id = request.cookies.get('session_id')
+    if path in ('', '/'):
+        try:
+            if not firebase_admin._apps:
+                firebase_admin.initialize_app()
+            db = firestore.client()
+            if session_id and db.collection('sessions').document(
+                    session_id).get().exists:
+                path = '/src/pages/index-authenticated.html'
+            else:
+                path = '/src/pages/index-guest.html'
+        except Exception as e:
+            return str(e), 500
+
     file_url = f'{base_url}{path}'
 
     try:
@@ -35,7 +52,11 @@ def get_static_file(request):
 
         response = make_response((content, response.status_code, headers))
 
-        if not request.cookies.get('session_id'):
+        if "index" in path:
+            response.headers[
+                'Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+
+        if not session_id:
             response.set_cookie('session_id', str(uuid.uuid4()))
 
         return response
