@@ -8,7 +8,6 @@ class Content {
         this.content_of_now_category_obj = null;
         this.message_obj = {};
         this.category_id = api.category_id;
-        console.log(this.category_id);
         $target.addEventListener("click", e=>{
             if (e.target.nodeName === "BUTTON")
             {
@@ -55,7 +54,7 @@ class Content {
 
     delete_msg(msg_id, category_id=localStorage.getItem('deleted_category_id')) // 카테고리 옮기고, 옮겨진 메시지는 그 자식과 함께 현재 DOM에서 제거.
     {
-        api.get({mode:"write_message", category_id:category_id, msg_id:msg_id})
+        api.post({mode:"write_message", category_id:category_id, msg_id:msg_id})
         .then(response=>{
             if (response.ok)
             {
@@ -86,55 +85,57 @@ class Content {
         this.$target.appendChild(this.content_of_now_category_obj);
     }
 
-    async get_data({parent_msg_id=-1, target_date="", limit=20, msg_id=null}={})
-    {
-        if (parent_msg_id !== -1) limit = -1;
+    async get_data({parent_msg_id=-1, target_date="", limit=20, msg_id=null}={}) {
+        if (parent_msg_id !== -1)
+            limit = -1;
 
-        var response = await api.get({mode:"fetch_messages", category_id:this.category_id, target_date:target_date, parent_msg_id:parent_msg_id, limit:limit, msg_id:msg_id});
+        var response = await api.get({
+            mode: "fetch_messages",
+            category_id: this.category_id,
+            target_date: target_date,
+            parent_msg_id: parent_msg_id,
+            limit: limit,
+            msg_id: msg_id
+        });
+
         var res_json = null;
-
-        if (response.ok) 
-        {
-            try{
-            res_json = await response.json();
+        if (response.ok) {
+            try {
+                res_json = await response.json();
             }
-            catch(e)
-            {
+            catch(e) {
                 console.log(response, `${parent_msg_id}, ${target_date}, ${limit, msg_id}`);
             }
         }
-        else throw new Error("Request failed. Try again.");
+        else
+            throw new Error("Request failed. Try again.");
 
         // 예를 들어 현재 content_inner의 높이가 100이고 현재 스크롤바의 위치가 30이라면, now_scroll에는 70이란 값이 저장됨.
         // 이후 예를들어 content_inner가 현재 위치에서 높이가 100이 추가돼 200이 됐다면, 원래는 스크롤바 위치는 그대로 30에서 변하지 않으나,
         // 밑에 연산을 통해 스크롤바 위치가 130으로 늘어남. 
         var now_scroll = this.content_of_now_category_obj.scrollHeight - this.content_of_now_category_obj.scrollTop;
 
-        if (res_json && Object.keys(res_json).length !== 0)
-        {
+        if (res_json && Object.keys(res_json).length !== 0) {
             res_json.forEach(async elem => {
                 var new_msg_obj = this.make_new_msg_obj(elem);
 
-                if (limit === 1)
-                {
+                if (limit === 1) {
                 }
-                else
-                {
-                    if (parent_msg_id === -1)
-                    {
+                else {
+                    if (parent_msg_id === -1) {
                         if (this.content_of_now_category_obj.childNodes.length > 0)
                             this.content_of_now_category_obj.insertBefore(new_msg_obj, this.content_of_now_category_obj.firstChild);
                         else
                             this.content_of_now_category_obj.appendChild(new_msg_obj);
                     }
-                    else //현재, 주어진 부모의 자식 메시지들을 sql 쿼리로 받아와서 DOM에 추가해야 하는 상황. 
-                    {
+                    else { //현재, 주어진 부모의 자식 메시지들을 sql 쿼리로 받아와서 DOM에 추가해야 하는 상황. 
                         var parent_obj = this.content_of_now_category_obj.querySelector(`div[id="msg_${parent_msg_id}"]`);
                         parent_obj.appendChild(new_msg_obj);
                         new_msg_obj.style.left =  (parseInt(parent_obj.style.left) + 20) + "px";
                         new_msg_obj.style.width = (parent_obj.offsetWidth - 20) + "px";
                     }    
-                    await this.get_data({parent_msg_id: elem['msg_id']});
+                    if (elem['msg_id'])
+                        await this.get_data({parent_msg_id: elem['msg_id']});
                 }
             });
 

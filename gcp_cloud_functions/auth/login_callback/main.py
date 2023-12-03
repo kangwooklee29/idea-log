@@ -7,6 +7,7 @@ import re
 import firebase_admin  # pylint: disable=import-error
 import google_auth_oauthlib.flow  # pylint: disable=import-error
 import requests
+from datetime import datetime, timedelta
 from flask import redirect, make_response
 from firebase_admin import firestore  # pylint: disable=import-error
 
@@ -46,7 +47,7 @@ def login_callback(request):
     if is_guest:
         profile = {'id': 'guest', 'name': 'guest'}
         _, doc_ref = db.collection('sessions').add({'profile': profile})
-        response.set_cookie('session_id', doc_ref.id)
+        session_id = doc_ref.id
     else:
         doc_ref = db.collection('sessions').document(session_id)
         doc = doc_ref.get()
@@ -79,6 +80,10 @@ def login_callback(request):
             doc_ref.update({'access_token': access_token, 'profile': profile})
         except Exception as e:
             return str(e), 500
+
+    response.set_cookie('session_id',
+                        session_id,
+                        expires=datetime.now() + timedelta(days=90))
 
     if check_if_joined(profile['id']):
         return response

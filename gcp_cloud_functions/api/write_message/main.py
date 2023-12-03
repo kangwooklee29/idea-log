@@ -24,23 +24,18 @@ def write_message(request):
     if 'msg_id' not in data:
         db.collection('messages').add({
             'category_id': data['category_id'],
-            'user_id': doc['profile']['user_id'],
-            'parent_msg_id': -1,
             'written_date': data['written_date'],
             'message': data['message'],
         })
     else:
+        update_dict = {}
+        if 'category_id' in data:
+            update_dict['category_id'] = data['category_id']
+        if 'message' in data:
+            update_dict['message'] = data['message']
+
         target_to_modify = db.collection('messages').document(
             data['msg_id']).get()
-        if target_to_modify.to_dict()['category_id'] == data['category_id']:
-            target_to_modify.reference.update({
-                'user_id':
-                data['user_id'],
-                'parent_msg_id':
-                -1,
-                'written_date':
-                data['written_date'],
-                'message':
-                data['message']
-            })
+        target_to_modify.reference.update(update_dict)
+
     return jsonify(success=True)

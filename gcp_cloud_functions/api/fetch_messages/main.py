@@ -25,11 +25,12 @@ def fetch_messages(request):
     user_id = db.collection('sessions').document(
         session_id).get().to_dict()['profile']['id']
 
+    query = None
+
     # Get all messages for a particular parent
     if limit == "-1":
-        query = db.collection('messages').where('parent_msg_id', '==',
+        query = db.collection('comments').where('parent_msg_id', '==',
                                                 parent_msg_id).stream()
-        messages = [doc.to_dict() for doc in query]
     # Infinite scroll: get a limited number of messages based on date and category
     elif limit == "20":
         name = db.collection('category').document(
@@ -37,34 +38,31 @@ def fetch_messages(request):
         if name == 'All':
             category_query = db.collection('category').where(
                 'user_id', '==', user_id).stream()
-            query = db.collection('messages').where('user_id', '==', user_id)
+            category_list = []
             for category in category_query:
-                name = category.to_dict()['name']
-                if name == 'Deleted':
-                    continue
-                query = query.where('name', '==', name)
+                if category.to_dict()['name'] != 'Deleted':
+                    category_list.append(category.id)
+            query = db.collection('messages').where('category_id', 'in',
+                                                    category_list)
         else:
             query = db.collection('messages').where('category_id', '==',
-                                                    category_id).where(
-                                                        'parent_msg_id', '==',
-                                                        -1)
+                                                    category_id)
 
         if target_date:
-            query = query.where('written_date', '<', target_date)
+            query = query.where('written_date', '<', int(target_date))
         else:
             query = query.where('written_date', '>', 0)
 
         query = query.order_by(
             'written_date',
             direction=firestore.Query.DESCENDING).limit(20).stream()
-        messages = [doc.to_dict() for doc in query]
 
     # Get the latest updated message
     else:
-        query = db.collection('messages').where(
-            'user_id', '==', user_id).order_by(
-                'msg_id',
-                direction=firestore.Query.DESCENDING).limit(1).stream()
-        messages = [doc.to_dict() for doc in query]
+        query = db.collection('messages').where('category_id', '==',
+                                                category_id)
+        query = query.where('written_date', '>', 0).order_by(
+            'written_date',
+            direction=firestore.Query.DESCENDING).limit(1).stream()
 
-    return jsonify(messages)
+    return jsonify([{'msg_id': doc.id, **doc.to_dict()} for doc in query])
