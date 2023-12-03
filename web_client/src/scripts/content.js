@@ -8,6 +8,7 @@ class Content {
         this.content_of_now_category_obj = null;
         this.message_obj = {};
         this.category_id = api.category_id;
+        console.log(this.category_id);
         $target.addEventListener("click", e=>{
             if (e.target.nodeName === "BUTTON")
             {
@@ -52,7 +53,7 @@ class Content {
 
     }
 
-    delete_msg(msg_id, category_id=3) // 카테고리 옮기고, 옮겨진 메시지는 그 자식과 함께 현재 DOM에서 제거.
+    delete_msg(msg_id, category_id=localStorage.getItem('deleted_category_id')) // 카테고리 옮기고, 옮겨진 메시지는 그 자식과 함께 현재 DOM에서 제거.
     {
         api.get({mode:"write_message", category_id:category_id, msg_id:msg_id})
         .then(response=>{
