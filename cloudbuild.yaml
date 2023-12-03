@@ -11,14 +11,6 @@ steps:
       - |
         gcloud config set project $_PROJECT_ID
 
-  # deploy Cloud Functions
-  - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: '/bin/bash'
-    args:
-      - '-c'
-      - |
-        gcloud functions deploy get_static_file --runtime python39 --trigger-http --allow-unauthenticated --entry-point get_static_file --source ./gcp_cloud_functions/get_static_file --region $_REGION
-
   # create API Gateways and deploy
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: '/bin/bash'
@@ -45,5 +37,24 @@ steps:
         gcloud api-gateway gateways create idea-log-gateway --api=idea-log-api --api-config=idea-log-api-config --location=us-central1 --quiet
 
         gcloud api-gateway gateways describe idea-log-gateway --location=us-central1
+
+  # deploy Cloud Functions
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: '/bin/bash'
+    args:
+      - '-c'
+      - |
+        declare -A directories
+
+        directories[get_static_file]="./gcp_cloud_functions/get_static_file"
+        directories[user_join]="./gcp_cloud_functions/auth/user_join"
+        directories[logout]="./gcp_cloud_functions/auth/logout"
+        directories[login]="./gcp_cloud_functions/auth/login"
+        directories[login_callback]="./gcp_cloud_functions/auth/login_callback"
+
+        for key in "${!directories[@]}"; do
+          cp -f client_secret.json "${directories[$key]}"
+          gcloud fucntions deploy $key --runtime python39 --trigger-http --allow-unauthenticated --entry-point $key --source "${directories[$key]}" --region $_REGION
+        done
 
 timeout: '1600s'
