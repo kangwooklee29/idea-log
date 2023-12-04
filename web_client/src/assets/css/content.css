@@ -14,6 +14,10 @@ body::-webkit-scrollbar {
     display: none;
 }
 
+main {
+    width: 100vw;
+}
+
 div.content_inner{
     flex-direction: column;
     width: 100%;

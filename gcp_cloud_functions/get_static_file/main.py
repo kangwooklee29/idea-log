@@ -25,11 +25,11 @@ def get_static_file(request):
             if not firebase_admin._apps:
                 firebase_admin.initialize_app()
             db = firestore.client()
-            if session_id and db.collection('sessions').document(
-                    session_id).get().exists:
-                path = '/src/pages/index-authenticated.html'
-            else:
-                path = '/src/pages/index-guest.html'
+            path = '/src/pages/index-guest.html'
+            if session_id:
+                doc = db.collection('sessions').document(session_id).get()
+                if doc.exists and 'profile' in doc.to_dict():
+                    path = '/src/pages/index-authenticated.html'
         except Exception as e:
             return str(e), 500
 
