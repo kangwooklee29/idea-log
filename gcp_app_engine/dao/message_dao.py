@@ -37,30 +37,30 @@ class MessageDAO():
         Returns:
             bool: True if the message was successfully written or updated, False otherwise.
         """
+        usr_msg_col_ref = db.collection('messages')
         if 'msg_id' not in data:
-            db.collection('messages').add({
+            usr_msg_col_ref.add({
                 'category_id': data['category_id'],
                 'written_date': data['written_date'],
                 'message': data['message'],
+                'user_id': data['user_id'],
             })
         else:
-            update_dict = {}
-            if 'category_id' in data:
-                update_dict['category_id'] = data['category_id']
-            if 'message' in data:
-                update_dict['message'] = data['message']
+            target_to_modify = usr_msg_col_ref.document(data['msg_id']).get()
+            modified_dict = target_to_modify.to_dict()
 
-            target_to_modify = db.collection('messages').document(
-                data['msg_id']).get()
+            if 'category_id' in data:
+                modified_dict['category_id'] = data['category_id']
+            if 'message' in data:
+                modified_dict['message'] = data['message']
 
             category_name = db.collection('category').document(
                 data['category_id']).get().to_dict()['name']
             if category_name == 'Deleted':
-                modified_target = target_to_modify.to_dict()
                 target_to_modify.reference.delete()
-                db.collection('deleted_messages').add(modified_target)
+                db.collection('deleted_messages').add(modified_dict)
             else:
-                target_to_modify.reference.update(update_dict)
+                target_to_modify.reference.update(modified_dict)
 
         return True
 
@@ -81,6 +81,7 @@ class MessageDAO():
         parent_msg_id: Optional[int] = kwargs.get('parent_msg_id')
         target_date: Optional[str] = kwargs.get('target_date')
         category_id: Optional[str] = kwargs.get('category_id')
+        user_id: Optional[str] = kwargs.get('user_id')
 
         category_name = db.collection('category').document(
             category_id).get().to_dict()['name']
@@ -95,7 +96,9 @@ class MessageDAO():
                                                     parent_msg_id).stream()
         # Infinite scroll: get a limited number of messages based on date and category
         elif limit == "20":
-            if category_name != 'All' and category_name != 'Deleted':
+            if category_name == 'All':
+                query = query.where('user_id', '==', user_id)
+            else:
                 query = query.where('category_id', '==', category_id)
 
             if target_date:
