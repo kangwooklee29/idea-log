@@ -1,0 +1,6 @@
+Authlib
+firebase-admin
+flask
+flask_cors
+google-cloud-secret-manager
+requests

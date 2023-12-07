@@ -26,20 +26,28 @@ sudo docker-compose up --build
 
 위 커맨드를 실행하여 서버를 실행합니다.
 
-### 새 GCP 프로젝트에 Cloud Functions로 배포하는 경우
+### 새 GCP 프로젝트에 Cloud Functions/App Engine으로 배포하는 경우
 
 1. 새로운 GCP 프로젝트 생성 및 설정
 
 ```bash
-./bin/setup-new-gcp-project.sh
+./bin/setup-new-gcp-project.sh <FLASK_SECRET_KEY>
 ```
 
 2. 그 GCP 프로젝트의 사용자 인증 정보에서 OAuth 클라이언트 ID 생성 후, 그 비밀번호를 JSON 파일로 다운받아 루트 디렉토리로 이동
 
 3. 현재 디렉토리 내 파일들을 현재 GCP 프로젝트로 배포
 
+- Cloud Functions
+
 ```bash
-gcloud builds submit --config cloudbuild.yaml .
+gcloud builds submit --config cloudbuild-gcf.yaml .
+```
+
+- App Engine
+
+```bash
+gcloud builds submit --config cloudbuild-gae.yaml .
 ```
 
 
