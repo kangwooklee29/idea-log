@@ -53,13 +53,12 @@ class CategoryDAO():
             bool: True if categories were successfully created, False otherwise.
         """
         try:
-            result = False
             for category_name in DEFAULT_CATEGORIES:
-                result |= db.collection('category').add({
+                db.collection('category').add({
                     'name': category_name,
                     'user_id': user_id
                 })
-            return result
+            return True
         except:
             return False
 
