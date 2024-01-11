@@ -1,5 +1,8 @@
 import {api} from "../utils/api.js";
 
+let typingTimer = null;
+let clickTimer = null;
+let contentInstance = null;
 class Content {
     constructor($target)
     {
@@ -8,39 +11,76 @@ class Content {
         this.content_of_now_category_obj = null;
         this.message_obj = {};
         this.category_id = api.category_id;
-        $target.addEventListener("click", e=>{
-            if (e.target.nodeName === "BUTTON")
-            {
-                if (e.target.classList.contains("up"))
-                    this.move_this_msg(e.target, "up");
-                else if (e.target.classList.contains("down"))
-                    this.move_this_msg(e.target, "down");
-                else if (e.target.classList.contains("reply"))
-                    this.open_reply(e.target.parentNode);
-                else if (e.target.classList.contains("delete"))
-                    this.delete_msg(e.target.parentNode.parentNode.id.replace("msg_", ""));
+        $target.addEventListener("click", e => {
+            let btn = e.target.closest("button");
+            if (btn) {
+                if (btn.classList.contains("up"))
+                    this.move_this_msg(btn, "up");
+                else if (btn.classList.contains("down"))
+                    this.move_this_msg(btn, "down");
+                else if (btn.classList.contains("reply"))
+                    this.open_reply(btn.parentNode);
+                else if (btn.classList.contains("delete"))
+                    this.delete_msg(btn.closest("div.message_outer").id.replace("msg_", ""));
             }
         });
 
-        $target.addEventListener("mousedown", ()=>{this.click_start = Date.now()});
-        $target.addEventListener("touchstart", ()=>{this.click_start = Date.now()});
-        $target.addEventListener("mouseup", e=>{
-            if (e.target.nodeName === "DIV" && e.target.classList.contains("message_inner"))
-            {
-                if (Date.now() - this.click_start > 800)
-                    this.edit_msg(e.target);
-                else
-                    this.edit_category(e.target);
+        // 길게 누르는 중 -> editable하게 바뀜
+        // 짧게 터치 -> 카테고리 띄움
+        $target.addEventListener("mousedown", e => {
+            if (e.target.closest("div.message_inner"))
+                clickTimer = setTimeout(() => {
+                    clickTimer = null;
+                    contentInstance.edit_msg(e.target.querySelector("pre"));
+                }, 800);
+        });
+        $target.addEventListener("touchstart", e => { 
+            if (e.target.closest("div.message_inner"))
+                clickTimer = setTimeout(() => {
+                    clickTimer = null;
+                    contentInstance.edit_msg(e.target.querySelector("pre"));
+                }, 800);
+        });
+        $target.addEventListener("touchmove", e => { 
+            if (e.target.closest("div.message_inner") && clickTimer) {
+                clearTimeout(clickTimer);
+                clickTimer = setTimeout(() => {
+                    clickTimer = null;
+                    contentInstance.edit_msg(e.target.querySelector("pre"));
+                }, 800);
             }
         });
-        $target.addEventListener("touchend", ()=>{
-            if (e.target.nodeName === "DIV" && e.target.classList.contains("message_inner"))
-            {
-                if (Date.now() - this.click_start > 800)
-                    this.edit_msg(e.target);
-                else
-                    this.edit_category(e.target);
+        $target.addEventListener("mouseup", e => {
+            if (e.target.closest("div.message_inner") && clickTimer) {
+                clearTimeout(clickTimer);
+                clickTimer = null;
+                contentInstance.edit_category(e.target.querySelector("pre"));
             }
+        });
+        $target.addEventListener("touchend", e => {
+            if (e.target.closest("div.message_inner") && clickTimer) {
+                clearTimeout(clickTimer);
+                clickTimer = null;
+                contentInstance.edit_category(e.target.querySelector("pre"));
+            }
+        });
+        $target.addEventListener("paste", e => {
+            console.log(e.target);
+            e.preventDefault();
+            var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+            document.execCommand('insertText', false, text);
+        });
+        $target.addEventListener("input", e => {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                e.target.contentEditable = "false";
+                e.target.blur();
+                api.post({mode:"write_message", message:e.target.innerHTML, msg_id: contentInstance.get_msg_id(e.target)}).then(response => console.log(response)).catch(error => console.log(error));
+            }, 3000);
+        });
+        $target.addEventListener("focusout", e => {
+            if (e.target.contentEditable === "true")
+                e.target.contentEditable = "false";
         });
 
         this.show();
@@ -209,7 +249,7 @@ msg_id !== null 인 케이스에 관한 구현.
 
         const msg_inner_obj = document.createElement("div");
         msg_inner_obj.classList.add("message_inner");
-        msg_inner_obj.innerHTML = `<div class="date_str">${date_str}</div>${this.make_message_appropriate(elem['message'])}<span style="font-size:1pt;color:white;">${date_str} ${time_str}</span><button class="reply">+</button><button class="delete">x</button>`;
+        msg_inner_obj.innerHTML = `<div class="date_str">${date_str}</div>${this.make_message_appropriate(elem['message'])}<span style="font-size:1pt;color:white;">${date_str} ${time_str}</span><button class="reply">+</button><button class="delete"><svg class="message-close" viewBox="0 0 30 30"><path d="M10.59 12L4.54 5.96l1.42-1.42L12 10.59l6.04-6.05 1.42 1.42L13.41 12l6.05 6.04-1.42 1.42L12 13.41l-6.04 6.05-1.42-1.42L10.59 12z"></path></svg></button>`;
         msg_outer_obj.appendChild(msg_inner_obj);
 
         msg_controller_obj.classList.add("msg_controller");
@@ -230,11 +270,9 @@ msg_id !== null 인 케이스에 관한 구현.
         return `<pre>${message}</pre>`;
     }
 
-    get_msg_id(target)
-    {
-        while (target && target.nodeName !== "div" && target.classList.contains("message_outer") === false)
-            target = target.parentNode;
-        return (target && target.nodeName === "div" && target.classList.contains("message_outer")) ? target.id : null;
+    get_msg_id(target) {
+        let message_outer = target.closest("div.message_outer");
+        return message_outer ? message_outer.id.replace("msg_", "") : null;
     }
 
     move_this_msg(target, dir)
@@ -323,12 +361,11 @@ msg_id !== null 인 케이스에 관한 구현.
         //카테고리 수정할 수 있는 모달을 띄워야... 걍 타이틀 복붙하면 될 듯? 
     }
 
-    edit_msg(target) //길게 터치 시 내용 수정
-    {
-        var id = this.get_msg_id(target);
-        //그냥 메시지 안에 textarea랑 수정완료 버튼 넣으면 됨
+    edit_msg(target) { //길게 터치 시 내용 수정
+        target.contentEditable = "true";
+        target.focus();
     }
 }
 
 api.category_id = localStorage.getItem('content_category_id');
-new Content(document.querySelector("main"));
+contentInstance = new Content(document.querySelector("main"));

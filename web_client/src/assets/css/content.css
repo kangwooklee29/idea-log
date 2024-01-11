@@ -1,3 +1,8 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css");
+
+* {
+    font-family: 'Pretendard';
+}
 
 body, main, div, button{
     display: flex;
@@ -43,13 +48,14 @@ div.message_inner{
     padding:15px;
     word-break: break-all;
     flex-direction: column;
+    box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.1);
 }
 
 pre{
     white-space: pre-wrap;
     margin: 0px;
     line-height: 1.4;
-    font-family: auto;
+    color: #444;
 }
 
 a{
@@ -76,6 +82,7 @@ div.msg_controller span{
     margin-top: 5px;
     position: absolute;
     bottom: 2px;
+    font-weight: 100;
 }
 
 button{
@@ -99,7 +106,8 @@ div.date_str{
     user-select: none;
     position: absolute;
     font-size:10pt;
-    color:#888;
+    color:#aaa;
+    font-weight: 200;
     top:-20px;
     left: 25px;
 }
@@ -108,13 +116,20 @@ button.reply{
     position: absolute;
     bottom:-35px;
     color:#ccc;
-    background-color: #eee;
+    font-size: 15pt;
+    font-weight: 100;
+    background-color: #f8f8f8;
 }
 
 button.delete{
     position: absolute;
     top:-20px;
     right:0px;
-    color:#ccc;
-    background-color: #eee;
+    background-color: #f8f8f8;
+}
+
+button.delete svg {
+    width: 15px;
+    height: 15px;
+    fill: #ccc;
 }

@@ -55,7 +55,7 @@ class MessageDAO():
                 modified_dict['message'] = data['message']
 
             category_name = db.collection('category').document(
-                data['category_id']).get().to_dict()['name']
+                modified_dict['category_id']).get().to_dict()['name']
             if category_name == 'Deleted':
                 target_to_modify.reference.delete()
                 db.collection('deleted_messages').add(modified_dict)

@@ -294,7 +294,7 @@ window.onload = async ()=>{
     .then(response => response.json())
     .then(data => {
         if (data.value) {
-            document.getElementById('username').innerText = `Hello, ${data.value}!`;
+            document.getElementById('username').innerText = data.value;
         }
     });
 }

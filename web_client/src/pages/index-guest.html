@@ -4,7 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Idea Log</title>
-    <!-- This file should be removed and integrated to index.html -->
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            height: 100vh;
+        }
+        label {
+            width: 40px;
+            display: inline-block;
+            text-align: right;
+        }
+        form {
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+        }
+    </style>
 </head>
     <body>
         <a href="/auth/login">You need to log in first.</a>
@@ -12,12 +30,14 @@
         Or, you can login with ID guest & PW guest.
         <br><br>
         <form action="/auth/login/callback?guest=true" method="post">
-            <label for="id">ID:</label>
-            <input type="text" id="id" name="id" placeholder="Enter ID" value="guest" readonly>
-            <br><br>
-            <label for="password">PW:</label>
-            <input type="password" id="password" name="password" placeholder="Enter Password" value="guest" readonly>
-            <br><br>
+            <div>
+                <label for="id">ID:</label>
+                <input type="text" id="id" name="id" placeholder="Enter ID" value="guest" readonly>    
+            </div>
+            <div>
+                <label for="password">PW:</label>
+                <input type="password" id="password" name="password" placeholder="Enter Password" value="guest" readonly>    
+            </div>
             <input type="submit" value="Login">
         </form>
     </body>
