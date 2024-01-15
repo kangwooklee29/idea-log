@@ -4,17 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Join Service</title>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            height: 100vh;
+        }
+    </style>
 </head>
 <body>
-    <h2>Welcome to Our Service</h2>
-    <p>Do you agree to join the service?</p>
-    <button onclick="requestJoinAction('agree')">Agree</button>
-    <button onclick="requestJoinAction('disagree')">Disagree</button>
+    <h2>Welcome to Idea Log</h2>
+    <p>Please enter your desired ID if you wish to join.</p>
+    <input type="text" id="username">
+    <button onclick="requestJoinAction('agree')">Join</button>
 
     <script>
         async function requestJoinAction(action) {
             try {
-                const response = await fetch(`/auth/join?action=${action}`);
+                const response = await fetch(`/auth/join?action=${action}&id={document.querySelector("#username")}`);
                 const data = await response.json();
 
                 alert(data.message);
