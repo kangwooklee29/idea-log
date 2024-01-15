@@ -4,9 +4,10 @@ gcp_app_engine/blueprints/auth/views.py
 
 from flask import Blueprint, current_app, jsonify, redirect, request, send_from_directory
 from flask import session, url_for
+from urllib.parse import unquote
 import requests
 
-from dao import category_dao
+from dao import category_dao, user_dao
 
 blueprint_auth = Blueprint('auth', __name__)
 
@@ -62,13 +63,13 @@ def user_join():
     """
     action = request.args.get('action')
     if action:
-        return handle_join_action(action)
+        return handle_join_action(action, request.args.get('id'))
 
     return send_from_directory(current_app.static_folder,
                                'src/pages/join.html')
 
 
-def handle_join_action(action=None):
+def handle_join_action(action=None, username=""):
     """
     1. 가입에 동의: 가입을 시도하고, 성공 시 성공 메시지 띄우고 index로. 실패 시 재가입 시도하라고 메시지 띄우고 로그아웃.
     2. 가입에 미동의: 경고 메시지 띄우고 로그아웃.
@@ -76,6 +77,9 @@ def handle_join_action(action=None):
     """
 
     if action == 'agree':
+        if not user_dao.assign_username(
+                session.get('profile')['id'], unquote(username)):
+            return jsonify({'duplicated_id': 1})
         if category_dao.create_categories_for_user(
                 session.get('profile')['id']):
             return jsonify({
@@ -84,11 +88,6 @@ def handle_join_action(action=None):
             })
         return jsonify({
             'message': 'Failed to join.',
-            'redirect_url': url_for('auth.logout')
-        })
-    if action == 'disagree':
-        return jsonify({
-            'message': 'You must join to use the service.',
             'redirect_url': url_for('auth.logout')
         })
 

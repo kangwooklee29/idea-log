@@ -3,6 +3,8 @@ import {api} from "../utils/api.js";
 let typingTimer = null;
 let clickTimer = null;
 let contentInstance = null;
+let lastX = 0, lastY = 0, lastEventTime = Date.now();
+
 class Content {
     constructor($target)
     {
@@ -41,14 +43,18 @@ class Content {
                     contentInstance.edit_msg(e.target.querySelector("pre"));
                 }, 800);
         });
-        $target.addEventListener("touchmove", e => { 
-            if (e.target.closest("div.message_inner") && clickTimer) {
+        $target.addEventListener("touchmove", e => {
+            if (e.timestamp - lastEventTime < 200) return;
+            const { clientX, clientY } = e.touches[0];
+            // messsage_inner 안에서 큰 움직임이 있었을 때만 타이머를 리셋한다.
+            if (Math.hypot(clientX - lastX, clientY - lastY) > 50 && e.target.closest("div.message_inner") && clickTimer) {
                 clearTimeout(clickTimer);
                 clickTimer = setTimeout(() => {
                     clickTimer = null;
                     contentInstance.edit_msg(e.target.querySelector("pre"));
                 }, 800);
             }
+            [lastX, lastY, lastEventTime] = [clientX, clientY, e.timestamp];
         });
         $target.addEventListener("mouseup", e => {
             if (e.target.closest("div.message_inner") && clickTimer) {

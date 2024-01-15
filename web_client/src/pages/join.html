@@ -18,13 +18,18 @@
     <h2>Welcome to Idea Log</h2>
     <p>Please enter your desired ID if you wish to join.</p>
     <input type="text" id="username">
+    <br><br>
     <button onclick="requestJoinAction('agree')">Join</button>
 
     <script>
         async function requestJoinAction(action) {
             try {
-                const response = await fetch(`/auth/join?action=${action}&id={document.querySelector("#username")}`);
+                const response = await fetch(`/auth/join?action=${action}&id=${encodeURIComponent(document.querySelector("#username"))}`);
                 const data = await response.json();
+                
+                if (data.duplicated_id) {
+                    throw new Error('Duplicated ID. Choose other IDs.');
+                }
 
                 alert(data.message);
 
@@ -32,8 +37,7 @@
                     window.location.href = data.redirect_url;
                 }
             } catch (error) {
-                console.error('There was an error:', error);
-                alert('There was an error processing your request.');
+                alert(`There was an error processing your request: ${error.message}`);
             }
         }
     </script>
