@@ -16,7 +16,26 @@
                     <a href="/auth/logout"><img src="/src/assets/img/logout.svg" style="margin-top: 3px; width:15px; height: 15px;"></a>    
                 </div>
             </div>
-            <div class="content"><iframe></iframe></div>
+            <div class="content">
+                <iframe></iframe>
+                <div id="options">
+                    <div class="username">
+                        <label for="username" data-i18n="username">User ID</label>
+                        <item>
+                            <div><input type="text" id="username"></div>
+                            <div><button data-i18n="save">SAVE</button></div>
+                        </item>
+                    </div>
+                    <div class="API_KEY">
+                      <label for="api_key" data-i18n="api_key">OpenAI API key</label>
+                      <item>
+                          <div><input type="text" id="api_key"></div>
+                          <div><button data-i18n="save">SAVE</button></div>
+                      </item>
+                    </div>
+                    <div class="options-close">x</div>
+                </div>
+            </div>
             <div class="textarea">
                 <div class="textarea_border_outer">
                     <div class="textarea_border">

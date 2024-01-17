@@ -163,7 +163,8 @@ class Title{
             {
                 const button_obj = document.createElement("button"), replaced = elem['name'].toLowerCase().replace(search_str, "");
                 button_obj.classList.add("categories");
-                button_obj.innerHTML = `<span style='font-weight:bold'>${search_str}</span>${elem['name'].substr(search_str.length, elem['name'].length)}`;
+                const category_name = elem['name'].substr(search_str.length, elem['name'].length).replace(/</g, "&lt;").replace(/</g, "&gt;");
+                button_obj.innerHTML = `<span style='font-weight:bold'>${search_str}</span>${category_name}`;
                 button_obj.id = `category_${elem['id']}`;
                 this.categories_obj.appendChild(button_obj);
                 if (elem['name'].toLowerCase() === search_str.toLowerCase())

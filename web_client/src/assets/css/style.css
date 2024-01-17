@@ -181,3 +181,47 @@ div.userinfo {
     margin-right: 20px;
     font-weight: 200;
 }
+
+#options {
+    display: none;
+    height: 100%;
+    width: 100%;
+    z-index: 1000;
+    background-color: #f8f8f8;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+#options label {
+    width: 30%;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    padding: 5px;
+}
+
+#options item {
+    width: 70%;
+    display: flex;
+    justify-content: center;
+}
+
+#options item > div:first-child {
+    width: 80%;
+}
+
+#options input{
+    width: 80%;
+}
+
+#options button{
+    margin: 5px;
+    width: 50px;
+}
+
+#options .options-close {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+

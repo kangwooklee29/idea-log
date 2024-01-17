@@ -22,9 +22,17 @@
     <button onclick="requestJoinAction('agree')">Join</button>
 
     <script>
+  document.getElementById('username').addEventListener('input', e => {
+    var value = e.target.value;
+    if (!/^[a-z0-9-]*$/.test(value)) {
+      alert('Only lowercase letters, numbers, and hyphens are allowed.');
+      e.target.value = value.slice(0, -1);
+    }
+  });
+
         async function requestJoinAction(action) {
             try {
-                const response = await fetch(`/auth/join?action=${action}&id=${encodeURIComponent(document.querySelector("#username"))}`);
+                const response = await fetch(`/auth/join?action=${action}&id=${encodeURIComponent(document.querySelector("#username").value)}`);
                 const data = await response.json();
                 
                 if (data.duplicated_id) {

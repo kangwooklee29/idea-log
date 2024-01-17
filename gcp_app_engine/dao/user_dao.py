@@ -5,7 +5,7 @@ gcp_app_engine/dao/user_dao.py
 from .base_dao import db
 
 
-class UserDao():
+class UserDAO():
     """
     Data access object (DAO) for User operations.
 

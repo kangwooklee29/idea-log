@@ -4,6 +4,7 @@ let typingTimer = null;
 let clickTimer = null;
 let contentInstance = null;
 let lastX = 0, lastY = 0, lastEventTime = Date.now();
+let is_touchmove = false;
 
 class Content {
     constructor($target)
@@ -30,29 +31,42 @@ class Content {
         // 길게 누르는 중 -> editable하게 바뀜
         // 짧게 터치 -> 카테고리 띄움
         $target.addEventListener("mousedown", e => {
-            if (e.target.closest("div.message_inner"))
+            if (e.target.closest("div.message_inner") && e.button === 0) {
+                [lastX, lastY, lastEventTime] = [e.clientX, e.clientY, Date.now()];
                 clickTimer = setTimeout(() => {
                     clickTimer = null;
-                    contentInstance.edit_msg(e.target.querySelector("pre"));
+                    contentInstance.edit_msg(e.target);
                 }, 800);
+            }
         });
         $target.addEventListener("touchstart", e => { 
-            if (e.target.closest("div.message_inner"))
+            if (e.target.closest("div.message_inner")) {
+                const { clientX, clientY } = e.touches[0];
+                [lastX, lastY, lastEventTime] = [clientX, clientY, Date.now()];
                 clickTimer = setTimeout(() => {
                     clickTimer = null;
-                    contentInstance.edit_msg(e.target.querySelector("pre"));
+                    contentInstance.edit_msg(e.target);
                 }, 800);
+            }
+        });
+        $target.addEventListener("mousemove", e => {
+            if (e.timestamp - lastEventTime < 200) return;
+            const { clientX, clientY } = e;
+            if (Math.hypot(clientX - lastX, clientY - lastY) > 10) {
+                if (clickTimer)
+                    clearTimeout(clickTimer);
+                clickTimer = null;
+            }
+            [lastX, lastY, lastEventTime] = [clientX, clientY, e.timestamp];
         });
         $target.addEventListener("touchmove", e => {
             if (e.timestamp - lastEventTime < 200) return;
             const { clientX, clientY } = e.touches[0];
             // messsage_inner 안에서 큰 움직임이 있었을 때만 타이머를 리셋한다.
-            if (Math.hypot(clientX - lastX, clientY - lastY) > 50 && e.target.closest("div.message_inner") && clickTimer) {
+            if (Math.hypot(clientX - lastX, clientY - lastY) > 10 && e.target.closest("div.message_inner") && clickTimer) {
                 clearTimeout(clickTimer);
-                clickTimer = setTimeout(() => {
-                    clickTimer = null;
-                    contentInstance.edit_msg(e.target.querySelector("pre"));
-                }, 800);
+                clickTimer = null;
+                is_touchmove = true;
             }
             [lastX, lastY, lastEventTime] = [clientX, clientY, e.timestamp];
         });
@@ -60,37 +74,54 @@ class Content {
             if (e.target.closest("div.message_inner") && clickTimer) {
                 clearTimeout(clickTimer);
                 clickTimer = null;
-                contentInstance.edit_category(e.target.querySelector("pre"));
+                contentInstance.edit_category(e.target);
             }
         });
         $target.addEventListener("touchend", e => {
-            if (e.target.closest("div.message_inner") && clickTimer) {
-                clearTimeout(clickTimer);
-                clickTimer = null;
-                contentInstance.edit_category(e.target.querySelector("pre"));
+            if (e.target.closest("div.message_inner")) {
+                if (is_touchmove) {
+                    contentInstance.edit_msg(e.target);
+                } else if (clickTimer) {
+                    clearTimeout(clickTimer);
+                    clickTimer = null;
+                    contentInstance.edit_category(e.target);
+                }
             }
+            is_touchmove = false;
         });
         $target.addEventListener("paste", e => {
-            console.log(e.target);
             e.preventDefault();
             var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+            console.log(e.target, text);
             document.execCommand('insertText', false, text);
         });
         $target.addEventListener("input", e => {
             clearTimeout(typingTimer);
             typingTimer = setTimeout(() => {
-                e.target.contentEditable = "false";
+                console.log(e.target.value, contentInstance.get_msg_id(e.target));
+                api.post({mode:"write_message", message:e.target.value, msg_id: contentInstance.get_msg_id(e.target)}).then(response => console.log(response)).catch(error => console.log(error));
                 e.target.blur();
-                api.post({mode:"write_message", message:e.target.innerHTML, msg_id: contentInstance.get_msg_id(e.target)}).then(response => console.log(response)).catch(error => console.log(error));
             }, 3000);
         });
         $target.addEventListener("focusout", e => {
-            if (e.target.contentEditable === "true")
-                e.target.contentEditable = "false";
+            console.log(e.target);
+            contentInstance.rollback_textarea(e.target);
         });
 
         this.show();
         this.get_data({msg_id: api.msg_id});
+    }
+
+    rollback_textarea(target) {
+        if (target.nodeName !== "TEXTAREA") return;
+        const pre = document.createElement('pre');
+        pre.innerHTML = target.value;
+
+        const computedStyle = window.getComputedStyle(target);
+        pre.style.width = computedStyle.width;
+        pre.style.height = computedStyle.height;
+        if (target.parentNode && target.parentNode.contains(target))
+            target.parentNode.replaceChild(pre, target);
     }
 
     open_reply(target)
@@ -266,7 +297,7 @@ msg_id !== null 인 케이스에 관한 구현.
 
     make_message_appropriate(message)
     {
-        message = message.replace(">", "&gt;").replace("<", "&lt;");
+        message = message.replace(/>/g, "&gt;").replace(/</g, "&lt;");
         var split_by_https = message.split("https://");
         if (split_by_https.length > 1)
         {
@@ -368,8 +399,17 @@ msg_id !== null 인 케이스에 관한 구현.
     }
 
     edit_msg(target) { //길게 터치 시 내용 수정
-        target.contentEditable = "true";
-        target.focus();
+        if (target.nodeName !== "PRE") target = target.querySelector("pre");
+        if (!target || target.nodeName !== "PRE") return;
+
+        const textarea = document.createElement('textarea');
+        textarea.value = target.textContent || target.innerText;
+
+        const computedStyle = window.getComputedStyle(target);
+        textarea.style.width = computedStyle.width;
+        textarea.style.height = computedStyle.height;
+        target.parentNode.replaceChild(textarea, target);
+        textarea.focus();
     }
 }
 
