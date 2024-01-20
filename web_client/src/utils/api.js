@@ -1,3 +1,5 @@
+let timer = null;
+
 class API{
     constructor()
     {
@@ -12,6 +14,7 @@ class API{
     }
 
     async post(params) {
+        console.log("post", params);
         return await fetch(`/api/${params["mode"]}`, {
             method: 'POST',
             headers: {
@@ -19,6 +22,46 @@ class API{
             },
             body: JSON.stringify(params)
         });
+    }
+
+    async whisper_api(file) {
+        let api_url = "https://api.openai.com/v1/audio/transcriptions";
+        let api_key = document.querySelector("#api_key").value;
+
+        var formData = new FormData();
+        formData.append('model', 'whisper-1');
+        formData.append('file', file);
+    
+        const abortController = new AbortController();
+        const param = {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${api_key}`
+            },
+            body: formData,
+            signal: abortController.signal
+        };
+        for (let i = 0; i < 5; i++) {
+            try {
+                const response = await fetch(api_url, param);
+                if (timer)
+                    clearTimeout(timer);
+                console.log(response);
+                if (response.ok) {
+                    return await response.json();
+                }
+                throw new Error(response.status);
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log("timeout for whisper", i);
+                    timer = setTimeout(() => abortController.abort(), 3000);
+                } else {
+                    console.log(error);
+                    return {};
+                }
+            }
+        }
+        return {};
     }
 }
 

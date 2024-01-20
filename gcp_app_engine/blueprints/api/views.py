@@ -4,7 +4,7 @@ gcp_app_engine/blueprints/api/views.py
 
 from urllib.parse import unquote
 from flask import Blueprint, jsonify, request, session
-from dao import category_dao, message_dao
+from dao import category_dao, message_dao, user_dao
 
 blueprint_api = Blueprint('api', __name__)
 
@@ -110,3 +110,29 @@ def fetch_messages():
                                       target_date=target_date,
                                       category_id=category_id,
                                       user_id=session.get('profile')['id'])
+
+
+@blueprint_api.route('/fetch_options')
+def fetch_options():
+    """
+    Fetch all the options for the given user id
+
+    Returns:
+    - Response: JSON message
+    """
+    return jsonify(user_dao.fetch_by_user_id(session.get('profile')['id']))
+
+
+@blueprint_api.route('/update_options', methods=['POST'])
+def update_options():
+    """
+    Update all the options for the given user id
+
+    Returns:
+    - Response: JSON message
+    """
+    api_key = request.json['api_key']
+    username = request.json['username']
+    return jsonify(user_dao.update_by_user_id(api_key=api_key,
+                                              username=username,
+                                              user_id=session.get('profile')['id']))

@@ -37,6 +37,13 @@ class Title{
                 if (e.keyCode === 38 || e.keyCode === 40) this.navigate_categories(e.keyCode);
             }
         });
+        this.$target.addEventListener('input', e => {
+            var value = e.target.value;
+            if (e.target === document.querySelector("#username_update") && !/^[a-z0-9-]*$/.test(value)) {
+                alert('Only lowercase letters, numbers, and hyphens are allowed.');
+                e.target.value = value.slice(0, -1);
+            }
+        });
         this.input_obj.addEventListener("input", ()=>this.show_categories());
         this.categories_obj = $target.querySelector("div.categories");
         this.categories_obj.addEventListener("click", (e) => {
@@ -291,11 +298,93 @@ let user_none_category_id;
 window.onload = async ()=>{
     new Title(document.querySelector("main > div.title"));
     new Textarea(document.querySelector("main > div.textarea"));
-    fetch('/api/profile?property=name')
+    api.get({mode: "profile", property: "name"})
     .then(response => response.json())
     .then(data => {
         if (data.value) {
             document.getElementById('username').innerText = data.value;
         }
     });
+    api.get({mode: "fetch_options"})
+    .then(response => response.json())
+    .then(data => {
+        if (data.username)
+            document.querySelector("#username_update").value = data.username;
+        if (data.api_key)
+            document.querySelector("#api_key").value = data.api_key;
+    });
 }
+
+async function start_recording() {
+    if (mediaRecorder && mediaRecorder.state === "recording") return;
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream, {type: 'audio/webm'});
+    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+
+    mediaRecorder.onstop = async () => {
+        var blob = new Blob(chunks, { 'type' : 'audio/webm' });
+        var file = new File([blob], "audio.webm", { type: "audio/webm;" });
+        chunks = [];
+        mediaRecorder = null;
+        stream.getTracks().forEach(track => track.stop());
+        var result = await api.whisper_api(file);
+        console.log(result);
+        document.querySelector("main > div.textarea textarea").readonly = "";
+        document.querySelector("main > div.textarea textarea").classList.remove("recording");
+        if (!result.text) return;
+        document.querySelector("main > div.textarea textarea").value += result.text;
+    };
+
+    mediaRecorder.start();
+}
+
+document.addEventListener("click", e => {
+    if (e.target === document.querySelector("#username")) {
+        document.querySelector("#options").style.display = "flex";
+        document.querySelector("iframe").style.display = "none";
+    }
+    if (e.target === document.querySelector("#options div.options-close")) {
+        document.querySelector("#options").style.display = "";
+        document.querySelector("iframe").style.display = "";
+    }
+    if (e.target === document.querySelector("div.username button") || e.target === document.querySelector("div.API_KEY button")) {
+        api.post({mode: "update_options", username: document.querySelector("#username_update").value, api_key: document.querySelector("#api_key").value}).then(data => console.log(data)).catch(error => console.log(error));
+    }
+});
+
+let mediaRecorder = null, chunks = [];
+let textareaTimer = null;
+
+document.addEventListener("mousedown", e => {
+    if (e.target === document.querySelector("main > div.textarea textarea")) {
+        if (textareaTimer) clearTimeout(textareaTimer);
+        textareaTimer = setTimeout(() => {
+            document.querySelector("main > div.textarea textarea").readonly = "true";
+            document.querySelector("main > div.textarea textarea").classList.add("recording");
+            start_recording();
+        }, 800);
+    }
+});
+
+document.addEventListener("mouseup", () => {
+    console.log(mediaRecorder);
+    if (mediaRecorder)
+        mediaRecorder.stop();
+});
+
+document.addEventListener("touchstart", e => {
+    if (e.target === document.querySelector("main > div.textarea textarea")) {
+        if (textareaTimer) clearTimeout(textareaTimer);
+        textareaTimer = setTimeout(() => {
+            document.querySelector("main > div.textarea textarea").readonly = "true";
+            document.querySelector("main > div.textarea textarea").classList.add("recording");
+            start_recording();
+        }, 800);
+    }
+});
+
+document.addEventListener("touchend", () => {
+    if (mediaRecorder)
+        mediaRecorder.stop();
+});

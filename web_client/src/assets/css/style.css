@@ -190,6 +190,8 @@ div.userinfo {
     background-color: #f8f8f8;
     flex-direction: column;
     justify-content: flex-start;
+    position: relative;
+    padding-top: 50px;
 }
 
 #options label {
@@ -204,10 +206,13 @@ div.userinfo {
     width: 70%;
     display: flex;
     justify-content: center;
+    align-items: center;
 }
 
 #options item > div:first-child {
     width: 80%;
+    align-items: center;
+    justify-content: center;
 }
 
 #options input{
@@ -225,3 +230,6 @@ div.userinfo {
     left: 10px;
 }
 
+textarea.recording {
+    background-color: #bbb;
+}
