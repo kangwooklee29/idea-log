@@ -1,5 +1,7 @@
 import {api} from "../utils/api.js";
 
+const pushToTriggerMs = 2000;
+
 class Title{
     constructor($target)
     {
@@ -170,8 +172,8 @@ class Title{
             {
                 const button_obj = document.createElement("button"), replaced = elem['name'].toLowerCase().replace(search_str, "");
                 button_obj.classList.add("categories");
-                const category_name = elem['name'].substr(search_str.length, elem['name'].length).replace(/</g, "&lt;").replace(/</g, "&gt;");
-                button_obj.innerHTML = `<span style='font-weight:bold'>${search_str}</span>${category_name}`;
+                button_obj.textContent = elem['name'].substr(search_str.length, elem['name'].length);
+                button_obj.innerHTML = `<span style='font-weight:bold'>${search_str}</span>${button_obj.textContent}`;
                 button_obj.id = `category_${elem['id']}`;
                 this.categories_obj.appendChild(button_obj);
                 if (elem['name'].toLowerCase() === search_str.toLowerCase())
@@ -330,10 +332,11 @@ async function start_recording() {
         stream.getTracks().forEach(track => track.stop());
         var result = await api.whisper_api(file);
         console.log(result);
-        document.querySelector("main > div.textarea textarea").readonly = "";
+        document.querySelector("main > div.textarea textarea").readOnly = false;
+        document.querySelector("main div.textarea_border").classList.remove("recording");
         document.querySelector("main > div.textarea textarea").classList.remove("recording");
         if (!result.text) return;
-        document.querySelector("main > div.textarea textarea").value += result.text;
+        document.querySelector("main > div.textarea textarea").value += result.text + (result.text.endsWith('.') ? ' ' : '. ');
     };
 
     mediaRecorder.start();
@@ -360,10 +363,12 @@ document.addEventListener("mousedown", e => {
     if (e.target === document.querySelector("main > div.textarea textarea")) {
         if (textareaTimer) clearTimeout(textareaTimer);
         textareaTimer = setTimeout(() => {
-            document.querySelector("main > div.textarea textarea").readonly = "true";
+            document.querySelector("main > div.textarea textarea").readOnly = true;
+            document.querySelector("main div.textarea_border").classList.add("recording");
             document.querySelector("main > div.textarea textarea").classList.add("recording");
+            document.querySelector("main > div.textarea textarea").blur();
             start_recording();
-        }, 800);
+        }, pushToTriggerMs);
     }
 });
 
@@ -379,10 +384,11 @@ document.addEventListener("touchstart", e => {
     if (e.target === document.querySelector("main > div.textarea textarea")) {
         if (textareaTimer) clearTimeout(textareaTimer);
         textareaTimer = setTimeout(() => {
-            document.querySelector("main > div.textarea textarea").readonly = "true";
+            document.querySelector("main > div.textarea textarea").readOnly = true;
+            document.querySelector("main div.textarea_border").classList.add("recording");
             document.querySelector("main > div.textarea textarea").classList.add("recording");
             start_recording();
-        }, 800);
+        }, pushToTriggerMs);
     }
 });
 

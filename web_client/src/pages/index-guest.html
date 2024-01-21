@@ -27,16 +27,16 @@
     <body>
         <a href="/auth/login">You need to log in first.</a>
         <br><br>
-        Or, you can login with ID guest & PW guest.
+        Or, you can login with ID guest & PW guest1.
         <br><br>
         <form action="/auth/login/callback?guest=true" method="post">
             <div>
                 <label for="id">ID:</label>
-                <input type="text" id="id" name="id" placeholder="Enter ID" value="guest" readonly>    
+                <input type="text" id="id" name="id" placeholder="Enter ID" value="">    
             </div>
             <div>
                 <label for="password">PW:</label>
-                <input type="password" id="password" name="password" placeholder="Enter Password" value="guest" readonly>    
+                <input type="password" id="password" name="password" placeholder="Enter Password" value="">    
             </div>
             <input type="submit" value="Login">
         </form>

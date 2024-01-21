@@ -233,3 +233,7 @@ div.userinfo {
 textarea.recording {
     background-color: #bbb;
 }
+
+.textarea_border.recording {
+    background-color: #bbb;
+}

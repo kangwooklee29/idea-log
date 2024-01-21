@@ -66,6 +66,7 @@ textarea {
     resize: none;
     font-size: 12pt;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 a{
@@ -120,6 +121,16 @@ div.date_str{
     font-weight: 200;
     top:-20px;
     left: 25px;
+}
+
+div.show_status{
+    user-select: none;
+    position: absolute;
+    font-size:10pt;
+    color:#aaa;
+    font-weight: 200;
+    top: -20px;
+    left: 110px;
 }
 
 button.reply{

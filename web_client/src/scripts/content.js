@@ -6,6 +6,8 @@ let contentInstance = null;
 let lastX = 0, lastY = 0, lastEventTime = Date.now();
 let is_touchmove = false;
 
+const pushToTriggerMs = 2000;
+
 class Content {
     constructor($target)
     {
@@ -36,7 +38,7 @@ class Content {
                 clickTimer = setTimeout(() => {
                     clickTimer = null;
                     contentInstance.edit_msg(e.target);
-                }, 800);
+                }, pushToTriggerMs);
             }
         });
         $target.addEventListener("touchstart", e => { 
@@ -46,7 +48,7 @@ class Content {
                 clickTimer = setTimeout(() => {
                     clickTimer = null;
                     contentInstance.edit_msg(e.target);
-                }, 800);
+                }, pushToTriggerMs);
             }
         });
         $target.addEventListener("mousemove", e => {
@@ -96,10 +98,19 @@ class Content {
             document.execCommand('insertText', false, text);
         });
         $target.addEventListener("input", e => {
+            if (e.target.nodeName === "TEXTAREA") {
+                e.target.style.height = `${e.target.scrollHeight}px`;
+            }
             clearTimeout(typingTimer);
             typingTimer = setTimeout(() => {
-                console.log(e.target.value, contentInstance.get_msg_id(e.target));
-                api.post({mode:"write_message", message:e.target.value, msg_id: contentInstance.get_msg_id(e.target)}).then(response => console.log(response)).catch(error => console.log(error));
+                const msg_id = contentInstance.get_msg_id(e.target);
+                document.querySelector(`div[id='msg_${msg_id}'] div.show_status`).textContent = "...";
+                api.post({mode:"write_message", message:e.target.value, msg_id: msg_id})
+                .then(response => {
+                    console.log(response);
+                    document.querySelector(`div[id='msg_${msg_id}'] div.show_status`).textContent = "o";
+                    setTimeout(() => { document.querySelector(`div[id='msg_${msg_id}'] div.show_status`).textContent = ""; }, 1000);
+                }).catch(error => console.log(error));
                 e.target.blur();
             }, 3000);
         });
@@ -115,11 +126,8 @@ class Content {
     rollback_textarea(target) {
         if (target.nodeName !== "TEXTAREA") return;
         const pre = document.createElement('pre');
-        pre.innerHTML = target.value;
+        pre.textContent = target.value;
 
-        const computedStyle = window.getComputedStyle(target);
-        pre.style.width = computedStyle.width;
-        pre.style.height = computedStyle.height;
         if (target.parentNode && target.parentNode.contains(target))
             target.parentNode.replaceChild(pre, target);
     }
@@ -131,6 +139,8 @@ class Content {
 
     delete_msg(msg_id, category_id=localStorage.getItem('deleted_category_id')) // 카테고리 옮기고, 옮겨진 메시지는 그 자식과 함께 현재 DOM에서 제거.
     {
+        document.querySelector(`div[id='msg_${msg_id}'] div.show_status`).textContent = "...";
+
         api.post({mode:"write_message", category_id:category_id, msg_id:msg_id})
         .then(response=>{
             if (response.ok)
@@ -238,20 +248,20 @@ msg_id !== null 인 케이스에 관한 구현.
 
             window.parent.document.querySelector("iframe").contentDocument.documentElement.scrollTop = target_date ? this.content_of_now_category_obj.scrollHeight - now_scroll : this.content_of_now_category_obj.scrollHeight; 
 
-            if (Object.keys(res_json).length === 20)
-            {
-                let io = new IntersectionObserver( entries =>
-                    {
-                        entries.forEach(async entry => 
-                        {
-                            if (entry.isIntersecting) 
-                            {
-                                console.log(entry.target);
-                                io.unobserve(entry.target);
-                                await this.get_data({target_date:res_json[res_json.length-1]['written_date']});
-                            }
-                        });
+            if (Object.keys(res_json).length === 20) {
+                let io = new IntersectionObserver( entries => {
+                    entries.forEach(async entry => {
+                        if (entry.isIntersecting) {
+                            console.log(entry.target);
+                            io.unobserve(entry.target);
+                            const statusElement = document.createElement("div");
+                            statusElement.textContent = "...";
+                            this.content_of_now_category_obj.insertBefore(statusElement, this.content_of_now_category_obj.firstChild);
+                            await this.get_data({target_date:res_json[res_json.length-1]['written_date']});
+                            this.content_of_now_category_obj.removeChild(statusElement);
+                        }
                     });
+                });
                 io.observe(this.content_of_now_category_obj.firstChild);
             }
         }
@@ -286,7 +296,7 @@ msg_id !== null 인 케이스에 관한 구현.
 
         const msg_inner_obj = document.createElement("div");
         msg_inner_obj.classList.add("message_inner");
-        msg_inner_obj.innerHTML = `<div class="date_str">${date_str}</div>${this.make_message_appropriate(elem['message'])}<span style="font-size:1pt;color:white;">${date_str} ${time_str}</span><button class="reply">+</button><button class="delete"><svg class="message-close" viewBox="0 0 30 30"><path d="M10.59 12L4.54 5.96l1.42-1.42L12 10.59l6.04-6.05 1.42 1.42L13.41 12l6.05 6.04-1.42 1.42L12 13.41l-6.04 6.05-1.42-1.42L10.59 12z"></path></svg></button>`;
+        msg_inner_obj.innerHTML = `<div class="date_str">${date_str}</div><div class="show_status"></div>${this.make_message_appropriate(elem['message'])}<span style="font-size:1pt;color:white;">${date_str} ${time_str}</span><button class="reply">+</button><button class="delete"><svg class="message-close" viewBox="0 0 30 30"><path d="M10.59 12L4.54 5.96l1.42-1.42L12 10.59l6.04-6.05 1.42 1.42L13.41 12l6.05 6.04-1.42 1.42L12 13.41l-6.04 6.05-1.42-1.42L10.59 12z"></path></svg></button>`;
         msg_outer_obj.appendChild(msg_inner_obj);
 
         msg_controller_obj.classList.add("msg_controller");
@@ -297,14 +307,14 @@ msg_id !== null 인 케이스에 관한 구현.
 
     make_message_appropriate(message)
     {
-        message = message.replace(/>/g, "&gt;").replace(/</g, "&lt;");
-        var split_by_https = message.split("https://");
-        if (split_by_https.length > 1)
-        {
+        const preElement = document.createElement("pre");
+        preElement.textContent = message;
+        var split_by_https = preElement.textContent.split("https://");
+        if (split_by_https.length > 1) {
             const href = split_by_https[1].split(/["') \n]/);
-            message = `${split_by_https[0]}<a href="https://${href[0]}" target="_blank">https://${href[0]}</a>${split_by_https[1].replace(href[0], "")}`;
+            preElement.innerHTML = `${split_by_https[0]}<a href="https://${href[0]}" target="_blank">https://${href[0]}</a>${split_by_https[1].replace(href[0], "")}`;
         }
-        return `<pre>${message}</pre>`;
+        return preElement.outerHTML;
     }
 
     get_msg_id(target) {
@@ -405,10 +415,9 @@ msg_id !== null 인 케이스에 관한 구현.
         const textarea = document.createElement('textarea');
         textarea.value = target.textContent || target.innerText;
 
-        const computedStyle = window.getComputedStyle(target);
-        textarea.style.width = computedStyle.width;
-        textarea.style.height = computedStyle.height;
+        textarea.style.width = `${target.getBoundingClientRect().width}px`;
         target.parentNode.replaceChild(textarea, target);
+        textarea.style.height = `${textarea.scrollHeight}px`;
         textarea.focus();
     }
 }

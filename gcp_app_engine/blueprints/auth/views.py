@@ -37,7 +37,9 @@ def authorized():
     """
 
     is_guest = request.args.get('guest', default=False, type=bool)
-    if is_guest:
+    id = request.form.get('id', '')
+    pw = request.form.get('password', '')
+    if is_guest and id == "guest" and pw == "guest1":
         session['profile'] = {'id': 'guest', 'name': 'guest'}
     elif 'state' not in request.args:
         # Invalid state, possibly due to CSRF
