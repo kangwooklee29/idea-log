@@ -78,12 +78,12 @@ class Content {
             }
         });
         $target.addEventListener("touchend", e => {
+            if (clickTimer) clearTimeout(clickTimer);
+            clickTimer = null;
             if (e.target.closest("div.message_inner")) {
                 if (is_touchmove) {
-                    contentInstance.edit_msg(e.target);
-                } else if (clickTimer) {
-                    clearTimeout(clickTimer);
-                    clickTimer = null;
+                    // contentInstance.edit_msg(e.target);
+                } else {
                     contentInstance.edit_category(e.target);
                 }
             }

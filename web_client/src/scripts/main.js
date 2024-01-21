@@ -368,6 +368,8 @@ document.addEventListener("mousedown", e => {
 });
 
 document.addEventListener("mouseup", () => {
+    if (textareaTimer) clearTimeout(textareaTimer);
+    textareaTimer = null;
     console.log(mediaRecorder);
     if (mediaRecorder)
         mediaRecorder.stop();
@@ -385,6 +387,8 @@ document.addEventListener("touchstart", e => {
 });
 
 document.addEventListener("touchend", () => {
+    if (textareaTimer) clearTimeout(textareaTimer);
+    textareaTimer = null;
     if (mediaRecorder)
         mediaRecorder.stop();
 });
