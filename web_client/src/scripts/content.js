@@ -3,10 +3,6 @@ import {api} from "../utils/api.js";
 let typingTimer = null;
 let clickTimer = null;
 let contentInstance = null;
-let lastX = 0, lastY = 0, lastEventTime = Date.now();
-let is_touchmove = false;
-
-const pushToTriggerMs = 2000;
 
 class Content {
     constructor($target)
@@ -16,6 +12,7 @@ class Content {
         this.content_of_now_category_obj = null;
         this.message_obj = {};
         this.category_id = api.category_id;
+        this.$edit_category_modal = this.render_edit_category_modal();
         $target.addEventListener("click", e => {
             let btn = e.target.closest("button");
             if (btn) {
@@ -25,71 +22,34 @@ class Content {
                     this.move_this_msg(btn, "down");
                 else if (btn.classList.contains("reply"))
                     this.open_reply(btn.parentNode);
-                else if (btn.classList.contains("delete"))
+                else if (btn.classList.contains("delete") && btn.closest("div.message_outer") && btn.closest("div.message_outer").id && btn.closest("div.message_outer").id.includes("msg"))
                     this.delete_msg(btn.closest("div.message_outer").id.replace("msg_", ""));
+                return;
             }
-        });
-
-        // 길게 누르는 중 -> editable하게 바뀜
-        // 짧게 터치 -> 카테고리 띄움
-        $target.addEventListener("mousedown", e => {
-            if (e.target.closest("div.message_inner") && e.button === 0) {
-                [lastX, lastY, lastEventTime] = [e.clientX, e.clientY, Date.now()];
+            if (!e.target.closest("div.message_outer")) return;
+            if (clickTimer === null) {
                 clickTimer = setTimeout(() => {
-                    clickTimer = null;
-                    contentInstance.edit_msg(e.target);
-                }, pushToTriggerMs);
-            }
-        });
-        $target.addEventListener("touchstart", e => { 
-            if (e.target.closest("div.message_inner")) {
-                const { clientX, clientY } = e.touches[0];
-                [lastX, lastY, lastEventTime] = [clientX, clientY, Date.now()];
-                clickTimer = setTimeout(() => {
-                    clickTimer = null;
-                    contentInstance.edit_msg(e.target);
-                }, pushToTriggerMs);
-            }
-        });
-        $target.addEventListener("mousemove", e => {
-            if (e.timestamp - lastEventTime < 200) return;
-            const { clientX, clientY } = e;
-            if (Math.hypot(clientX - lastX, clientY - lastY) > 10) {
-                if (clickTimer)
-                    clearTimeout(clickTimer);
-                clickTimer = null;
-            }
-            [lastX, lastY, lastEventTime] = [clientX, clientY, e.timestamp];
-        });
-        $target.addEventListener("touchmove", e => {
-            if (e.timestamp - lastEventTime < 200) return;
-            const { clientX, clientY } = e.touches[0];
-            // messsage_inner 안에서 큰 움직임이 있었을 때만 타이머를 리셋한다.
-            if (Math.hypot(clientX - lastX, clientY - lastY) > 10 && e.target.closest("div.message_inner") && clickTimer) {
-                clearTimeout(clickTimer);
-                clickTimer = null;
-                is_touchmove = true;
-            }
-            [lastX, lastY, lastEventTime] = [clientX, clientY, e.timestamp];
-        });
-        $target.addEventListener("mouseup", e => {
-            if (e.target.closest("div.message_inner") && clickTimer) {
-                clearTimeout(clickTimer);
-                clickTimer = null;
-                contentInstance.edit_category(e.target);
-            }
-        });
-        $target.addEventListener("touchend", e => {
-            if (clickTimer) clearTimeout(clickTimer);
-            clickTimer = null;
-            if (e.target.closest("div.message_inner")) {
-                if (is_touchmove) {
-                    // contentInstance.edit_msg(e.target);
-                } else {
                     contentInstance.edit_category(e.target);
-                }
+                    clickTimer = null;
+                }, 300);
+            } else {
+                clearTimeout(clickTimer);
+                clickTimer = null;
+                contentInstance.edit_msg(e.target);
             }
-            is_touchmove = false;
+        });
+        $target.addEventListener('touchend', e => {
+            if (!e.target.closest("div.message_outer")) return;
+            if (clickTimer === null) {
+                clickTimer = setTimeout(() => {
+                    contentInstance.edit_category(e.target);
+                    clickTimer = null;
+                }, 500);
+            } else {
+                clearTimeout(clickTimer);
+                clickTimer = null;
+                contentInstance.edit_msg(e.target);
+            }
         });
         $target.addEventListener("paste", e => {
             e.preventDefault();
@@ -104,6 +64,7 @@ class Content {
             clearTimeout(typingTimer);
             typingTimer = setTimeout(() => {
                 const msg_id = contentInstance.get_msg_id(e.target);
+                console.log(e.target, msg_id);
                 document.querySelector(`div[id='msg_${msg_id}'] div.show_status`).textContent = "...";
                 api.post({mode:"write_message", message:e.target.value, msg_id: msg_id})
                 .then(response => {
@@ -402,10 +363,47 @@ msg_id !== null 인 케이스에 관한 구현.
         }
     }
 
-    edit_category(target) //살짝 터치 시 카테고리 수정. 만약 수정요청이 자식이라면 거절하고, 부모라면 모든 자식 함께 이동해야.
+    render_edit_category_modal() {
+        var edit_category_modal = document.createElement("div");
+        edit_category_modal.classList.add("edit_category_modal");
+        var close_button = document.createElement("button");
+        close_button.classList.add("delete");
+        close_button.innerHTML = `<svg class="message-close" viewBox="0 0 30 30"><path d="M10.59 12L4.54 5.96l1.42-1.42L12 10.59l6.04-6.05 1.42 1.42L13.41 12l6.05 6.04-1.42 1.42L12 13.41l-6.04 6.05-1.42-1.42L10.59 12z"></path></svg>`;
+        close_button.addEventListener("click", () => contentInstance.$target.removeChild(edit_category_modal));
+        edit_category_modal.appendChild(close_button);
+
+        var category_list_elem = document.createElement("div");
+        category_list_elem.classList.add("category_list");
+        edit_category_modal.appendChild(category_list_elem);
+
+        edit_category_modal.addEventListener("click", e => {
+            if (e.target.classList.contains("category-list-item")) {
+                api.post({mode: "write_message", msg_id: e.target.parentElement.getAttribute("data-msg-id"), category_id: e.target.getAttribute("data-category-id")});
+                edit_category_modal.parentElement.removeChild(edit_category_modal);
+            }
+        });
+
+        return edit_category_modal;
+    }
+
+    async edit_category(target) //살짝 터치 시 카테고리 수정. 만약 수정요청이 자식이라면 거절하고, 부모라면 모든 자식 함께 이동해야.
     {
-        var id = this.get_msg_id(target);
-        //카테고리 수정할 수 있는 모달을 띄워야... 걍 타이틀 복붙하면 될 듯? 
+        this.$edit_category_modal.querySelector("div.category_list").innerHTML = "";
+        this.$edit_category_modal.querySelector("div.category_list").setAttribute("data-msg-id", this.get_msg_id(target));
+
+        var response = await api.get({mode:"fetch_categories"});
+        var res_json = await response.json();
+
+        for (var elem of res_json) {
+            var item = document.createElement("div");
+            item.classList.add("category-list-item");
+            item.textContent = elem.name;
+            item.setAttribute("data-category-id", elem.id);
+            this.$edit_category_modal.querySelector("div.category_list").appendChild(item);
+        }
+        
+        this.$target.appendChild(this.$edit_category_modal);
+        console.log(this.$target, this.$edit_category_modal);
     }
 
     edit_msg(target) { //길게 터치 시 내용 수정
