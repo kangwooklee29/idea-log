@@ -1,4 +1,4 @@
-name: Continuous Integration and Deployment
+name: Check Formatting & Type Hints on Diff
 
 on:
   pull_request:
