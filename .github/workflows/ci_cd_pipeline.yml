@@ -1,4 +1,4 @@
-name: Check Formatting, Type Hints, Run unit tests, and Deploy
+name: "Check Formatting, Type Hints, Run unit tests, and Deploy"
 
 on:
   pull_request:
