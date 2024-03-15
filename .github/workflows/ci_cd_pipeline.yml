@@ -1,4 +1,4 @@
-name: "Check Formatting, Type Hints, Run unit tests, and Deploy"
+name: Continuous Integration and Deployment
 
 on:
   pull_request:
