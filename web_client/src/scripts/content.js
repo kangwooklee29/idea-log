@@ -1,8 +1,9 @@
 import {api} from "../utils/api.js";
 
 let typingTimer = null;
-let clickTimer = null;
+let lastTapTime = null;
 let contentInstance = null;
+let moveHappened = false;
 
 class Content {
     constructor($target)
@@ -22,34 +23,28 @@ class Content {
                     this.move_this_msg(btn, "down");
                 else if (btn.classList.contains("reply"))
                     this.open_reply(btn.parentNode);
+                else if (btn.classList.contains("edit_category"))
+                    this.edit_category(btn.parentNode.parentNode);
                 else if (btn.classList.contains("delete") && btn.closest("div.message_outer") && btn.closest("div.message_outer").id && btn.closest("div.message_outer").id.includes("msg"))
                     this.delete_msg(btn.closest("div.message_outer").id.replace("msg_", ""));
                 return;
             }
+        });
+        $target.addEventListener('dblclick', e => {
             if (!e.target.closest("div.message_outer")) return;
-            if (clickTimer === null) {
-                clickTimer = setTimeout(() => {
-                    contentInstance.edit_category(e.target);
-                    clickTimer = null;
-                }, 300);
-            } else {
-                clearTimeout(clickTimer);
-                clickTimer = null;
-                contentInstance.edit_msg(e.target);
-            }
+            contentInstance.edit_msg(e.target);
+        });
+        $target.addEventListener('touchmove', e => {
+            moveHappened = true;
         });
         $target.addEventListener('touchend', e => {
             if (!e.target.closest("div.message_outer")) return;
-            if (clickTimer === null) {
-                clickTimer = setTimeout(() => {
-                    contentInstance.edit_category(e.target);
-                    clickTimer = null;
-                }, 500);
-            } else {
-                clearTimeout(clickTimer);
-                clickTimer = null;
+            var currentTime = new Date().getTime();
+            if (currentTime - lastTapTime < 300 && moveHappened === false) {
                 contentInstance.edit_msg(e.target);
             }
+            lastTapTime = currentTime;
+            moveHappened = false;
         });
         $target.addEventListener("paste", e => {
             e.preventDefault();
@@ -268,7 +263,12 @@ msg_id !== null 인 케이스에 관한 구현.
 
         const msg_inner_obj = document.createElement("div");
         msg_inner_obj.classList.add("message_inner");
-        msg_inner_obj.innerHTML = `<div class="date_str">${date_str}</div><div class="show_status"></div>${this.make_message_appropriate(elem['message'])}<span style="font-size:1pt;color:white;">${date_str} ${time_str}</span><button class="reply">+</button><button class="delete"><svg class="message-close" viewBox="0 0 30 30"><path d="M10.59 12L4.54 5.96l1.42-1.42L12 10.59l6.04-6.05 1.42 1.42L13.41 12l6.05 6.04-1.42 1.42L12 13.41l-6.04 6.05-1.42-1.42L10.59 12z"></path></svg></button>`;
+        msg_inner_obj.innerHTML = `
+        <div class="date_str">${date_str}</div>
+        <div class="show_status"></div>${this.make_message_appropriate(elem['message'])}<span style="font-size:1pt;color:white;">${date_str} ${time_str}</span>
+        <button class="edit_category">C</button>
+        <button class="reply">+</button>
+        <button class="delete"><svg class="message-close" viewBox="0 0 30 30"><path d="M10.59 12L4.54 5.96l1.42-1.42L12 10.59l6.04-6.05 1.42 1.42L13.41 12l6.05 6.04-1.42 1.42L12 13.41l-6.04 6.05-1.42-1.42L10.59 12z"></path></svg></button>`;
         msg_outer_obj.appendChild(msg_inner_obj);
 
         msg_controller_obj.classList.add("msg_controller");

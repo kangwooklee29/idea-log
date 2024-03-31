@@ -135,9 +135,18 @@ div.show_status{
 
 button.reply{
     position: absolute;
-    bottom:-35px;
+    bottom:-37px;
+    left: 40px;
     color:#ccc;
     font-size: 15pt;
+    font-weight: 100;
+    background-color: #f8f8f8;
+}
+
+button.edit_category{
+    position: absolute;
+    bottom:-35px;
+    color: #ccc;
     font-weight: 100;
     background-color: #f8f8f8;
 }
