@@ -41,13 +41,13 @@ sudo docker-compose up --build
 - Cloud Functions
 
 ```bash
-gcloud builds submit --config cloudbuild-gcf.yaml .
+gcloud builds submit --config cloudbuild-gcf.yaml --service-account=[SA_NAME]@[PROJECT_ID].iam.gserviceaccount.com .
 ```
 
 - App Engine
 
 ```bash
-gcloud builds submit --config cloudbuild-gae.yaml .
+gcloud builds submit --config cloudbuild-gae.yaml --service-account=[SA_NAME]@[PROJECT_ID].iam.gserviceaccount.com .
 ```
 
 
