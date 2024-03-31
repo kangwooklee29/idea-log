@@ -93,8 +93,12 @@ class Title{
     {
         api.get({mode:"fetch_categories"})
         .then(response => {
-            if (response.ok) return response.json();
-            throw new Error("Request failed. Try again.");
+            if (response.ok)
+                return response.json();
+            else if (response.status === 401)
+                response.json().then(data => alert(data.error));
+            else
+                throw new Error("Request failed. Try again.");
         }).then(response=>{
             this.categories = response;
             const allCategory = this.categories.find(category => category.name === "All");
@@ -125,8 +129,12 @@ class Title{
     {
         api.get({mode:"update_category", name:encodeURIComponent(this.input_obj.value)})
         .then(response => {
-            if (response.ok) return response.json();
-            throw new Error("Request failed. Try again.");
+            if (response.ok)
+                return response.json();
+            else if (response.status === 401)
+                response.json().then(data => alert(data.error));
+            else
+                throw new Error("Request failed. Try again.");
         }).then(id=>{
             this.add_button_hide();
             this.move_category(id);
@@ -283,12 +291,14 @@ class Textarea {
 
         api.post({mode:"write_message", message:temp, written_date:Date.now(), category_id: user_none_category_id})
         .then(response => {
-            if (response.ok)
-            {
+            if (response.ok) {
                 document.querySelector("iframe").src = "/components/content.html";
                 return;
             }
-            throw new Error("Request failed. Try again.");
+            else if (response.status === 401)
+                response.json().then(data => alert(data.error));
+            else
+                throw new Error("Request failed. Try again.");
         }).catch(error=>{
             this.textarea_obj.value = temp;
             alert(error);
@@ -301,15 +311,27 @@ window.onload = async ()=>{
     new Title(document.querySelector("main > div.title"));
     new Textarea(document.querySelector("main > div.textarea"));
     api.get({mode: "profile", property: "name"})
-    .then(response => response.json())
-    .then(data => {
+    .then(response => {
+        if (response.ok)
+            return response.json();
+        else if (response.status === 401)
+            response.json().then(data => alert(data.error));
+        else
+            throw new Error("Request failed. Try again.");
+    }).then(data => {
         if (data.value) {
             document.getElementById('username').innerText = data.value;
         }
     });
     api.get({mode: "fetch_options"})
-    .then(response => response.json())
-    .then(data => {
+    .then(response => {
+        if (response.ok)
+            return response.json();
+        else if (response.status === 401)
+            response.json().then(data => alert(data.error));
+        else
+            throw new Error("Request failed. Try again.");
+    }).then(data => {
         if (data.username)
             document.querySelector("#username_update").value = data.username;
         if (data.api_key)
@@ -352,7 +374,16 @@ document.addEventListener("click", e => {
         document.querySelector("iframe").style.display = "";
     }
     if (e.target === document.querySelector("div.username button") || e.target === document.querySelector("div.API_KEY button")) {
-        api.post({mode: "update_options", username: document.querySelector("#username_update").value, api_key: document.querySelector("#api_key").value}).then(data => console.log(data)).catch(error => console.log(error));
+        api.post({mode: "update_options", username: document.querySelector("#username_update").value, api_key: document.querySelector("#api_key").value})
+        .then(response => {
+            if (response.ok)
+                return response.json();
+            else if (response.status === 401)
+                response.json().then(data => alert(data.error));
+            else
+                throw new Error("Request failed. Try again.");
+        }).then(data => console.log(data))
+        .catch(error => console.log(error));
     }
 });
 

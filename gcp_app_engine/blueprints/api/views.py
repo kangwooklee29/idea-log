@@ -20,7 +20,7 @@ def verify_authentication():
     - Response: JSON message
     """
     if 'profile' not in session:
-        return jsonify({"error": "Not authenticated"}), 401
+        return jsonify({"error": "Not authenticated, You need to log in."}), 401
     return None
 
 

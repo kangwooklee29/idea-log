@@ -68,9 +68,15 @@ class Content {
                 document.querySelector(`div[id='msg_${msg_id}'] div.show_status`).textContent = "...";
                 api.post({mode:"write_message", message:e.target.value, msg_id: msg_id})
                 .then(response => {
-                    console.log(response);
-                    document.querySelector(`div[id='msg_${msg_id}'] div.show_status`).textContent = "o";
-                    setTimeout(() => { document.querySelector(`div[id='msg_${msg_id}'] div.show_status`).textContent = ""; }, 1000);
+                    if (response.ok) {
+                        console.log(response);
+                        document.querySelector(`div[id='msg_${msg_id}'] div.show_status`).textContent = "o";
+                        setTimeout(() => { document.querySelector(`div[id='msg_${msg_id}'] div.show_status`).textContent = ""; }, 1000);
+                    }
+                    else if (response.status === 401)
+                        response.json().then(data => alert(data.error));
+                    else
+                        throw new Error("Request failed. Try again.");
                 }).catch(error => console.log(error));
                 e.target.blur();
             }, 3000);
@@ -118,7 +124,10 @@ class Content {
                 }
                 return;
             }
-            throw new Error("Request failed. Try again.");
+            else if (response.status === 401)
+                response.json().then(data => alert(data.error));
+            else
+                throw new Error("Request failed. Try again.");
         }).catch(error=>{
             alert(error);
         });
@@ -155,6 +164,8 @@ class Content {
                 console.log(response, `${parent_msg_id}, ${target_date}, ${limit, msg_id}`);
             }
         }
+        else if (response.status === 401)
+            response.json().then(data => alert(data.error));
         else
             throw new Error("Request failed. Try again.");
 
@@ -337,7 +348,10 @@ msg_id !== null 인 케이스에 관한 구현.
                     this.get_data({parent_msg_id: find_next_parent});
                     return;
                 }
-                throw new Error("Request failed. Try again.");
+                else if (response.status === 401)
+                    response.json().then(data => alert(data.error));
+                else
+                    throw new Error("Request failed. Try again.");
             }).catch(error=>{
                 alert(error);
             });
@@ -356,7 +370,10 @@ msg_id !== null 인 케이스에 관한 구현.
                     this.get_data({parent_msg_id: find_next_parent});                    
                     return;
                 }
-                throw new Error("Request failed. Try again.");
+                else if (response.status === 401)
+                    response.json().then(data => alert(data.error));
+                else
+                    throw new Error("Request failed. Try again.");
             }).catch(error=>{
                 alert(error);
             })
@@ -378,7 +395,13 @@ msg_id !== null 인 케이스에 관한 구현.
 
         edit_category_modal.addEventListener("click", e => {
             if (e.target.classList.contains("category-list-item")) {
-                api.post({mode: "write_message", msg_id: e.target.parentElement.getAttribute("data-msg-id"), category_id: e.target.getAttribute("data-category-id")});
+                api.post({mode: "write_message", msg_id: e.target.parentElement.getAttribute("data-msg-id"), category_id: e.target.getAttribute("data-category-id")})
+                .then(response => {
+                    if (response.status === 401)
+                        response.json().then(data => alert(data.error));
+                    else if (!response.ok)
+                        throw new Error("Request failed. Try again.");
+                }).catch(error => alert(error));
                 edit_category_modal.parentElement.removeChild(edit_category_modal);
             }
         });
@@ -393,6 +416,11 @@ msg_id !== null 인 케이스에 관한 구현.
 
         var response = await api.get({mode:"fetch_categories"});
         var res_json = await response.json();
+
+        if (response.status === 401)
+            response.json().then(data => alert(data.error));
+        else if (!response.ok)
+            throw new Error("Request failed. Try again.");
 
         for (var elem of res_json) {
             var item = document.createElement("div");
