@@ -77,7 +77,21 @@ class Content {
             }, 3000);
         });
         $target.addEventListener("focusout", e => {
-            console.log(e.target);
+            const msg_id = contentInstance.get_msg_id(e.target);
+            console.log(e.target, msg_id);
+            document.querySelector(`div[id='msg_${msg_id}'] div.show_status`).textContent = "...";
+            api.post({mode:"write_message", message:e.target.value, msg_id: msg_id})
+            .then(response => {
+                if (response.ok) {
+                    console.log(response);
+                    document.querySelector(`div[id='msg_${msg_id}'] div.show_status`).textContent = "o";
+                    setTimeout(() => { document.querySelector(`div[id='msg_${msg_id}'] div.show_status`).textContent = ""; }, 1000);
+                }
+                else if (response.status === 401)
+                    response.json().then(data => alert(data.error));
+                else
+                    throw new Error("Request failed. Try again.");
+            }).catch(error => console.log(error));
             contentInstance.rollback_textarea(e.target);
         });
 
