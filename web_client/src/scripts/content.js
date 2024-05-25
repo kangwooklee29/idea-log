@@ -73,7 +73,6 @@ class Content {
                     else
                         throw new Error("Request failed. Try again.");
                 }).catch(error => console.log(error));
-                e.target.blur();
             }, 3000);
         });
         $target.addEventListener("focusout", e => {
